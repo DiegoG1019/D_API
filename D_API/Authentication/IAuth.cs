@@ -7,6 +7,7 @@ namespace D_API.Authentication
 {
     public interface IAuth
     {
-        string Authenticate(string username, string password);
+        string? Authenticate();
+        string? Authenticate(string name, string role);
     }
 }
