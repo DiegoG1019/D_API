@@ -12,5 +12,11 @@ namespace D_API.Controllers
     [Route("api/test")]
     public class TestController : ControllerBase
     {
+        [AllowAnonymous]
+        [HttpGet("probe")]
+        public IActionResult Probe() => Ok();
+
+        [HttpGet("probeAuth")]
+        public IActionResult ProbeAuth() => Ok();
     }
 }
