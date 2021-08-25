@@ -11,8 +11,8 @@ using System.IO;
 namespace D_API.Controllers
 {
     [Authorize]
-    [Route("api/appdatahost")]
     [ApiController]
+    [Route("api/appdatahost")]
     public class AppDataHost : ControllerBase
     {
         private readonly IAuth Auth;
