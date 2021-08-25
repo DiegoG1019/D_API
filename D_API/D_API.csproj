@@ -4,6 +4,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <Authors>Diego Garcia</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
