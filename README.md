@@ -15,7 +15,7 @@ _W.I.P._
 Just like basically any other API, there are rate limits for every user, to prevent abuse.
 The default rate limits are:
 - 5 Requests per second. _If you were to send 5 requests every second for a minute, you'd send 300 requests. But..._
-- Within 1 minute, a maximum of 80 requests are allowed._If you were to send 80 requests every minute for 12 hours, you'd send 57,600 requests. But..._
+- Within 1 minute, a maximum of 80 requests are allowed. _If you were to send 80 requests every minute for 12 hours, you'd send 57,600 requests. But..._
 - Within 12 hours, a maximum of 25,000 requests are allowed. _If you were to send 25,000 requests every 12 hours for a week, you'd send 350,000 requests. But..._
 - Within a week, a maximum of 100,000 requests are allowed. _If you were to send 100,000 requests every week for 30 days, you'd send 1,500,000 requests. Please don't._
 
