@@ -30,7 +30,8 @@ namespace D_API.Authentication
                     new Claim[]
                     {
                         new Claim(ClaimTypes.Name, name),
-                        new Claim(ClaimTypes.Role, role)
+                        new Claim(ClaimTypes.Role, role),
+                        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                     }),
                 Expires = null,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature)
