@@ -22,6 +22,11 @@ namespace D_API.Controllers
             Auth = auth;
         }
 
+        static AppDataHost()
+        {
+            Directory.CreateDirectory(Directories.AppDataHost);
+        }
+
         [HttpGet("config/{appname}")]
         public async Task<IActionResult> GetConfig(string appname)
         {
