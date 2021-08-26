@@ -12,7 +12,7 @@ namespace D_API.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("api/appdatahost")]
+    [Route("api/v1/appdatahost")]
     public class AppDataHost : ControllerBase
     {
         private readonly IAuth Auth;
