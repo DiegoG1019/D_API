@@ -34,6 +34,9 @@ namespace D_API.Controllers
             return System.IO.File.Exists(s) ? Ok(await ReadFile(s)) : NotFound();
         }
 
+        [HttpPost("config/{appname}")]
+        public Task<IActionResult> WriteConfig(string appname, [FromBody]string body) => WriteConfig(appname, body, false);
+
         [HttpPost("config/{appname}/{ow}")]
         public async Task<IActionResult> WriteConfig(string appname, [FromBody]string body, bool ow)
         {
