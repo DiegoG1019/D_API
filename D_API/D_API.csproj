@@ -12,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DiegoG.TelegramBot" Version="1.7.8" />
     <PackageReference Include="DiegoG.Utilities.Base" Version="1.0.0" />
     <PackageReference Include="DiegoG.Utilities.Basic" Version="1.0.2" />
     <PackageReference Include="DiegoG.Utilities.Other" Version="1.0.0" />
