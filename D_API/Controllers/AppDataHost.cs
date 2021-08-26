@@ -38,7 +38,7 @@ namespace D_API.Controllers
         public async Task<IActionResult> WriteConfig(string appname, [FromBody]string body, bool ow)
         {
             var file = Directories.InAppDataHost(appname);
-            if (ow && System.IO.File.Exists(file))
+            if (!ow && System.IO.File.Exists(file))
                 return Unauthorized("File already exists, cannot assume overwrite. If you wish to overwrite it, please use \"config/{appname}/true\"");
 
             await WriteFile(file, body);
