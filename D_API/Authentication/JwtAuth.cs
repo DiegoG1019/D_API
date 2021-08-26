@@ -32,7 +32,7 @@ namespace D_API.Authentication
                         new Claim(ClaimTypes.Role, role)
                     }),
                 Expires = null,
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.RsaSha256Signature)
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature)
             };
 
             return tokenHandler.WriteToken(tokenHandler.CreateToken(tokenDescriptor));
