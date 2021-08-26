@@ -1,3 +1,4 @@
+using DiegoG.TelegramBot;
 using DiegoG.Utilities.Settings;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -16,6 +17,7 @@ namespace D_API
 {
     public static class Program
     {
+        public static TelegramBotCommandClient TelegramBot { get; private set; }
         public static void Main(string[] args)
         {
             Settings<APISettings>.Initialize(Directories.Configuration, "apisettings.cfg");
@@ -35,6 +37,10 @@ namespace D_API
                     throw new InvalidOperationException($"Found one or more errors when initializing the API:\n*> {string.Join("\n*> ", errors)}");
             }
 
+            TelegramBot = new(Settings<APISettings>.Current.APIKey!, 10, 
+                config: new(true, true, false, true, true), 
+                messageFilter: m => Settings<APISettings>.Current.AllowedUsers.Contains(m.From.Id));
+
             Log.Logger = new LoggerConfiguration()
                    .MinimumLevel.Verbose()
                    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
@@ -45,6 +51,7 @@ namespace D_API
 #else
                    .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Information)
 #endif
+                   .WriteTo.TelegramBot(Settings<APISettings>.Current.EventChannelId, TelegramBot, LogEventLevel.Warning, "API")
                    .CreateLogger();
 
             foreach (var x in typeof(Directories).GetFields(BindingFlags.Static | BindingFlags.Public))
