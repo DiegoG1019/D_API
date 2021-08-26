@@ -20,6 +20,7 @@ namespace D_API
 {
     public class Startup
     {
+        public static IAuth Auth { get; private set; }
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -49,7 +50,8 @@ namespace D_API
                 };
             });
 
-            services.AddSingleton<IAuth>(new JwtAuth(key));
+            Auth = new JwtAuth(key);
+            services.AddSingleton<IAuth>(Auth);
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
