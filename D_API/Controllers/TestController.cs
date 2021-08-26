@@ -18,5 +18,17 @@ namespace D_API.Controllers
 
         [HttpGet("probeAuth")]
         public IActionResult ProbeAuth() => Ok();
+
+        [Authorize(Roles = "root,admin,mod")]
+        [HttpGet("probeAuthMod")]
+        public IActionResult ProbeAuthMod() => Ok();
+
+        [Authorize(Roles = "root,admin")]
+        [HttpGet("probeAuthAdmin")]
+        public IActionResult ProbeAuthAdmin() => Ok();
+
+        [Authorize(Roles = "root")]
+        [HttpGet("probeAuthRoot")]
+        public IActionResult ProbeAuthRoot() => Ok();
     }
 }
