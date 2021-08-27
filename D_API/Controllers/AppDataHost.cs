@@ -43,7 +43,6 @@ namespace D_API.Controllers
             var file = Directories.InAppDataHost(appname);
             if (!ow && System.IO.File.Exists(file))
                 return Unauthorized("File already exists, cannot assume overwrite. If you wish to overwrite it, please use \"config/{appname}/true\"");
-
             await WriteFile(file, body);
             return Ok();
         }
