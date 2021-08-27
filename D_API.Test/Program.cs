@@ -14,12 +14,16 @@ namespace D_API.Test
 
         static async Task Main(string[] args)
         {
-            WriteLine("Input API Key\n> ");
-            var k = ReadLine(); ;
+            Write("Input API Key\n> ");
+            var k = ReadLine();
+
             Http.DefaultRequestHeaders.Authorization = new("Bearer", k);
             var t = TestProbe();
             await TestAppDataHost();
             await t;
+
+            Write("Press any key to continue...");
+            ReadKey();
         }
 
         static async Task TestProbe()
