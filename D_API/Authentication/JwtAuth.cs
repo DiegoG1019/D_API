@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using DiegoG.Utilities.Settings;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -34,6 +35,8 @@ namespace D_API.Authentication
                         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                     }),
                 Expires = null,
+                Audience = Settings<APISettings>.Current.Security.Audience,
+                Issuer = Settings<APISettings>.Current.Security.Issuer,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature)
             };
 
