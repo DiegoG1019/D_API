@@ -17,7 +17,9 @@ namespace D_API.Test
             WriteLine("Input API Key\n> ");
             var k = ReadLine(); ;
             Http.DefaultRequestHeaders.Authorization = new("Bearer", k);
-            await TestProbe();
+            var t = TestProbe();
+            await TestAppDataHost();
+            await t;
         }
 
         static async Task TestProbe()
@@ -33,6 +35,18 @@ namespace D_API.Test
             int i = 0;
             foreach(var x in GetResults())
                 WriteLine($"TestProbe Result {++i}: {x}");
+        }
+
+        static async Task TestAppDataHost()
+        {
+            StoreResult((await Http.GetAsync("api/v1/appdatahost/config/test")).StatusCode);
+            StoreResult((await Http.PostAsJsonAsync("api/v1/appdatahost/config/test", "aaaaaaaaaaaaaaaaaa")).StatusCode);
+            StoreResult(await (await Http.GetAsync("api/v1/appdatahost/config/test")).Content.ReadAsStringAsync());
+            StoreResult((await Http.PostAsJsonAsync("api/v1/appdatahost/config/test/true", "aaaaaaaaaaaaaaaaaa")).StatusCode);
+
+            int i = 0;
+            foreach (var x in GetResults())
+                WriteLine($"TestAppDataHost Result {++i}: {x}");
         }
 
         #region Utilities
