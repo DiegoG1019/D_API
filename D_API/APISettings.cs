@@ -11,7 +11,7 @@ namespace D_API
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         public string SettingsType => "APISettings";
-        public ulong Version => 0;
+        public ulong Version => 1;
 
         public string? APIKey { get; set; }
         public List<long> AllowedUsers { get; set; } = new();
