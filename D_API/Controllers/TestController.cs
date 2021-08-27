@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -7,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace D_API.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("api/test")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class TestController : ControllerBase
     {
         [AllowAnonymous]
@@ -19,11 +20,11 @@ namespace D_API.Controllers
         [HttpGet("probeAuth")]
         public IActionResult ProbeAuth() => Ok();
 
-        [Authorize(Roles = "root,admin,mod")]
+        [Authorize(Roles = "mod")]
         [HttpGet("probeAuthMod")]
         public IActionResult ProbeAuthMod() => Ok();
 
-        [Authorize(Roles = "root,admin")]
+        [Authorize(Roles = "admin")]
         [HttpGet("probeAuthAdmin")]
         public IActionResult ProbeAuthAdmin() => Ok();
 
