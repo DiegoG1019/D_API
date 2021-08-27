@@ -17,7 +17,24 @@ namespace D_API.Test
             WriteLine("Input API Key\n> ");
             var k = ReadLine(); ;
             Http.DefaultRequestHeaders.Authorization = new("Bearer", k);
+            await TestProbe();
         }
+
+        static async Task TestProbe()
+        {
+            var r1_t = Http.GetAsync("api/test/probe");
+            var r2_t = Http.GetAsync("api/test/probeAuth");
+            var r3_t = Http.GetAsync("api/test/probeAuthMod");
+
+            StoreResult((await r1_t).StatusCode);
+            StoreResult((await r2_t).StatusCode);
+            StoreResult((await r3_t).StatusCode);
+
+            int i = 0;
+            foreach(var x in GetResults())
+                WriteLine($"TestProbe Result {++i}: {x}");
+        }
+
         #region Utilities
         readonly static Dictionary<string, List<object>> ResultsDictionary = new();
         static void CheckCaller(string caller)
