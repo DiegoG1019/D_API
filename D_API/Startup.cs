@@ -12,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,7 +34,18 @@ namespace D_API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            var key = "qgBVG:Qv7W?ns7Rf_eRdA2J,~NayIrYKr?X%PX@YcOi!IgHV@5Ln:jeGYVb1Smc+";
+            string key;
+            {
+                var args = Environment.GetCommandLineArgs();
+                if (args.Length is > 1)
+                    key = args[1];
+                else
+                {
+                    Log.Error("Could not obtain a security key from command line arguments. Using default key instead.");
+                    key = "qgBVG:Qv7W?ns7Rf_eRdA2J,~NayIrYKr?X%PX@YcOi!IgHV@5Ln:jeGYVb1Smc+";
+                }
+            }
+
             services.AddOptions();
             services.AddMemoryCache();
             services.Configure<ClientRateLimitOptions>(Configuration.GetSection("ClientRateLimiting"));
