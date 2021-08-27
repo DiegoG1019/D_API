@@ -18,5 +18,28 @@ namespace D_API.Test
             var k = ReadLine(); ;
             Http.DefaultRequestHeaders.Authorization = new("Bearer", k);
         }
+        #region Utilities
+        readonly static Dictionary<string, List<object>> ResultsDictionary = new();
+        static void CheckCaller(string caller)
+        {
+            if (caller is null)
+                throw new ArgumentNullException(nameof(caller));
+        }
+        static void StoreResult(object result, [CallerMemberName] string caller = null)
+        {
+            CheckCaller(caller);
+            if (!ResultsDictionary.ContainsKey(caller))
+                ResultsDictionary[caller] = new();
+            ResultsDictionary[caller].Add(result);
+        }
+
+        static IEnumerable<object> GetResults([CallerMemberName] string caller = null)
+        {
+            CheckCaller(caller);
+            var r = ResultsDictionary[caller];
+            ResultsDictionary.Remove(caller);
+            return r;
+        }
+        #endregion
     }
 }
