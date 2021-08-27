@@ -1,7 +1,9 @@
+using AspNetCoreRateLimit;
 using D_API.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -32,6 +34,16 @@ namespace D_API
         public void ConfigureServices(IServiceCollection services)
         {
             var key = "qgBVG:Qv7W?ns7Rf_eRdA2J,~NayIrYKr?X%PX@YcOi!IgHV@5Ln:jeGYVb1Smc+";
+            services.AddOptions();
+            services.AddMemoryCache();
+            services.Configure<ClientRateLimitOptions>(Configuration.GetSection("ClientRateLimiting"));
+            services.Configure<ClientRateLimitOptions>(Configuration.GetSection("ClientRateLimitPolicies"));
+
+            services.AddInMemoryRateLimiting();
+
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+
             services.AddControllers();
             services.AddAuthentication(x =>
             {
@@ -68,6 +80,8 @@ namespace D_API
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "D_API v1"));
             }
+
+            app.UseClientRateLimiting();
 
             app.UseHttpsRedirection();
 
