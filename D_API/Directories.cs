@@ -8,7 +8,7 @@ namespace D_API
 {
     public static class Directories
     {
-        public readonly static string EnvDataDir = Environment.GetEnvironmentVariable("D_API_dir") ?? Environment.CurrentDirectory;
+        public readonly static string EnvDataDir = Environment.GetEnvironmentVariable("D_API_dir") ?? Path.Combine(Environment.CurrentDirectory, ".dat");
 
         public readonly static string Configuration = Path.Combine(EnvDataDir, ".config");
         public readonly static string Data = Path.Combine(EnvDataDir, ".data");
