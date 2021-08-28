@@ -18,7 +18,16 @@ namespace D_API.Types
 
         public AppDataAccessFileKeeper(string filename)
         {
-
+            lock (LoadedFiles)
+            {
+                if (LoadedFiles.Contains(filename))
+                    throw new InvalidOperationException($"AppDataAccessFileKeeper {filename} is already loaded");
+                LoadedFiles.Add(filename);
+            }
+            Filename = filename;
+            AccessDict = File.Exists(Directories.InData("AppDataAccess", Filename)) ?
+                Serialization.Deserialize<Dictionary<string, string>>.Json(Directories.InData("AppDataAccess"), Filename) :
+                new();
         }
 
         public Task<bool> CheckAccess(string role, string file)
