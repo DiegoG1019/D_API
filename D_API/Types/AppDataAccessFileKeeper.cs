@@ -33,7 +33,7 @@ namespace D_API.Types
         public async Task<bool> CheckAccess(string role, string file)
         {
             using (await Mutex.LockAsync())
-                return AccessDict.TryGetValue(file, out var val) && role == val;
+                return !AccessDict.ContainsKey(file) || AccessDict[file] == role;
         }
 
         public async Task NewFile(string role, string file)
