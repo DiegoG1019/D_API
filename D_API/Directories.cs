@@ -14,6 +14,12 @@ namespace D_API
         public readonly static string Data = Path.Combine(EnvDataDir, ".data");
         public readonly static string Logs = Path.Combine(EnvDataDir, ".logs");
         public readonly static string AppDataHost = Path.Combine(EnvDataDir, "adh");
+        
+        static Directories()
+        {
+            foreach (var i in typeof(Directories).GetFields())
+                Directory.CreateDirectory((string)i.GetValue(null)!);
+        }
 
         public static string InConfiguration(params string[] path)
             => Path.Combine(Configuration, Path.Combine(path));
