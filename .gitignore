@@ -361,6 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-*/dat/*
+*/.dat/*
 D_API/adh/test
 D_API/dat/.config/apisettings.cfg.json
