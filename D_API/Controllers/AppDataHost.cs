@@ -15,12 +15,6 @@ namespace D_API.Controllers
     [Route("api/v1/appdatahost")]
     public class AppDataHost : ControllerBase
     {
-        private readonly IAuth Auth;
-
-        public AppDataHost(IAuth auth)
-        {
-            Auth = auth;
-        }
 
         static AppDataHost()
         {
