@@ -10,6 +10,12 @@ namespace D_API.Types
 {
     public class AppDataAccessFileKeeper : IAppDataAccessKeeper
     {
+        private static readonly List<string> LoadedFiles = new();
+
+        private readonly AsyncLock Mutex = new();
+        private readonly Dictionary<string, string> AccessDict;
+        private readonly string Filename;
+
         public AppDataAccessFileKeeper(string filename)
         {
 
