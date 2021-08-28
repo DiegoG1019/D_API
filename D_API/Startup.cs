@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using D_API.Types;
 
 namespace D_API
 {
@@ -80,6 +81,7 @@ namespace D_API
 
             Auth = new JwtAuth(key);
             services.AddSingleton<IAuth>(Auth);
+            services.AddSingleton<IAppDataAccessKeeper>(new AppDataAccessFileKeeper("main"));
             services.AddControllers();
             services.AddSwaggerGen(c => c.SwaggerDoc("v1", new OpenApiInfo { Title = "D_API", Version = "v1" }));
         }
