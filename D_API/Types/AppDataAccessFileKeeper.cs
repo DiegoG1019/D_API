@@ -38,6 +38,8 @@ namespace D_API.Types
 
         public async Task NewFile(string role, string file)
         {
+            if (AccessDict.TryGetValue(file, out var result) && role == result)
+                return;
             using (await Mutex.LockAsync())
             {
                 AccessDict[file] = role;
