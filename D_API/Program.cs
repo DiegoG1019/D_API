@@ -45,7 +45,7 @@ namespace D_API
                    .MinimumLevel.Verbose()
                    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                    .Enrich.FromLogContext()
-                   .WriteTo.File("logs/.log", rollingInterval: RollingInterval.Hour, restrictedToMinimumLevel: LogEventLevel.Verbose)
+                   .WriteTo.File(Directories.InLogs(".log"), rollingInterval: RollingInterval.Hour, restrictedToMinimumLevel: LogEventLevel.Verbose)
 #if DEBUG
                    .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Debug)
 #else
