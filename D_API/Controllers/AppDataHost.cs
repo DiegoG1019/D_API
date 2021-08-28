@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using DiegoG.Utilities.IO;
 using System.IO;
+using D_API.Types;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -15,6 +16,12 @@ namespace D_API.Controllers
     [Route("api/v1/appdatahost")]
     public class AppDataHost : ControllerBase
     {
+        private readonly IAppDataAccessKeeper Keeper;
+
+        public AppDataHost(IAppDataAccessKeeper keeper)
+        {
+            Keeper = keeper;
+        }
 
         static AppDataHost()
         {
