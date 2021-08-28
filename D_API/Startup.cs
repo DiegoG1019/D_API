@@ -1,5 +1,6 @@
 using AspNetCoreRateLimit;
 using D_API.Authentication;
+using DiegoG.Utilities.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -66,11 +67,12 @@ namespace D_API
 #if DEBUG
                 x.RequireHttpsMetadata = false;
 #endif
+                x.Audience = Settings<APISettings>.Current.Security.Audience;
                 x.SaveToken = true;
                 x.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
-                    ValidateIssuer = true,
+                    ValidateIssuer = false,
                     ValidateAudience = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key))
                 };
