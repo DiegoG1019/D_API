@@ -36,9 +36,13 @@ namespace D_API.Types
                 return AccessDict.TryGetValue(file, out var val) && role == val;
         }
 
-        public Task NewFile(string role, string file)
+        public async Task NewFile(string role, string file)
         {
-            throw new NotImplementedException();
+            using (await Mutex.LockAsync())
+            {
+                AccessDict[file] = role;
+                await Serialization.Serialize.JsonAsync(AccessDict, Directories.InData("AppDataAccess"), Filename);
+            }
         }
     }
 }
