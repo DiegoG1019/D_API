@@ -30,9 +30,10 @@ namespace D_API.Types
                 new();
         }
 
-        public Task<bool> CheckAccess(string role, string file)
+        public async Task<bool> CheckAccess(string role, string file)
         {
-            throw new NotImplementedException();
+            using (await Mutex.LockAsync())
+                return AccessDict.TryGetValue(file, out var val) && role == val;
         }
 
         public Task NewFile(string role, string file)
