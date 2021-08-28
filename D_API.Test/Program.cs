@@ -19,6 +19,7 @@ namespace D_API.Test
 
             Http.DefaultRequestHeaders.Authorization = new("Bearer", k);
             var t = TestProbe();
+            await Task.Delay(1500);
             await TestAppDataHost();
             await t;
 
@@ -31,10 +32,14 @@ namespace D_API.Test
             var r1_t = Http.GetAsync("api/test/probe");
             var r2_t = Http.GetAsync("api/test/probeAuth");
             var r3_t = Http.GetAsync("api/test/probeAuthMod");
+            var r4_t = Http.GetAsync("api/test/probeAuthAdmin");
+            var r5_t = Http.GetAsync("api/test/probeAuthRoot");
 
-            StoreResult((await r1_t).StatusCode);
-            StoreResult((await r2_t).StatusCode);
-            StoreResult((await r3_t).StatusCode);
+            StoreResult($"Probe: {(await r1_t).StatusCode}");
+            StoreResult($"Auth: {(await r2_t).StatusCode}");
+            StoreResult($"Mod: {(await r3_t).StatusCode}");
+            StoreResult($"Admin: {(await r4_t).StatusCode}");
+            StoreResult($"Root: {(await r5_t).StatusCode}");
 
             int i = 0;
             foreach(var x in GetResults())
