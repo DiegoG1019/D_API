@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.31515.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "D_API", "D_API\D_API.csproj", "{7DE8E72A-2E1C-4DB7-8EF9-6EC74C8160BE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "D_API.Test", "D_API.Test\D_API.Test.csproj", "{F215CA40-6B7B-443E-B2DE-D7B9ACBC17A2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "D_API.Test", "D_API.Test\D_API.Test.csproj", "{F215CA40-6B7B-443E-B2DE-D7B9ACBC17A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
