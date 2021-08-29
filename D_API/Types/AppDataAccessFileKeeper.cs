@@ -38,9 +38,14 @@ namespace D_API.Types
             int r;
             await id.CheckAuthValidity();
             using (await Mutex.LockAsync())
-                r = AccessDict.ContainsKey(file) ? AccessDict[file] == id.Identity!.Name ? 1 : id.IsInRole("root") ? 2 : 0 : 0;
-            Log.Information($"User {id.Identity!.Name} accessed {file} because they're {(r is 1 ? "the owner" : r is 2 ? "root" : "neither. ERROR!")}.");
-            return r > 0;
+               r = AccessDict.ContainsKey(file) ? AccessDict[file] == id.Identity!.Name ? 1 : id.IsInRole("root") ? 2 : 0 : 3;
+
+            if (r > 0)
+            {
+                Log.Information($"User {id.Identity!.Name} accessed {file} because {(r is 1 ? "they're the owner" : r is 2 ? "they're a root user" : r is 3 ? "the file doesn't exist" : "neither. ERROR!")}.");
+                return true;
+            }
+            return false;
         }
 
         public async Task NewFile(ClaimsPrincipal id, string file)
