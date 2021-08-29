@@ -8,6 +8,7 @@ using Serilog;
 using Serilog.Events;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -15,11 +16,19 @@ using System.Threading.Tasks;
 
 namespace D_API
 {
-    public static class Program
     {
+        private readonly static Stopwatch stopwatch = new();
+        private readonly static Stopwatch startwatch = new();
+
+        public readonly static Version Version = Assembly.GetExecutingAssembly().GetName().Version!;
+
+        public static TimeSpan Runtime => stopwatch.Elapsed;
+        public static TimeSpan StartupTime { get; private set; }
+
         public static TelegramBotCommandClient TelegramBot { get; private set; }
         public static void Main(string[] args)
         {
+            startwatch.Start();
             Settings<APISettings>.Initialize(Directories.Configuration, "apisettings.cfg");
 
             {
@@ -61,7 +70,7 @@ namespace D_API
 
             foreach (var x in typeof(Directories).GetFields(BindingFlags.Static | BindingFlags.Public))
                 Log.Information($"{x.Name} directory @ {x.GetValue(null)}");
-                
+
             CreateHostBuilder(args).Build().Run();
         }
 
