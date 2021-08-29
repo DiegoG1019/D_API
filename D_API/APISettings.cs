@@ -15,7 +15,7 @@ namespace D_API
 
         public string? APIKey { get; set; }
         public List<long> AllowedUsers { get; set; } = new();
-        public long EventChannelId { get; set; }
+        public long? EventChannelId { get; set; } = 0;
 
         public Security_settings Security { get; init; } = new(); public class Security_settings
         {

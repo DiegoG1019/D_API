@@ -40,19 +40,24 @@ namespace D_API
             TelegramBot = new(Settings<APISettings>.Current.APIKey!, 10, 
                 config: new(true, true, false, true, true), 
                 messageFilter: m => Settings<APISettings>.Current.AllowedUsers.Contains(m.From.Id));
-
-            Log.Logger = new LoggerConfiguration()
-                   .MinimumLevel.Verbose()
-                   .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-                   .Enrich.FromLogContext()
-                   .WriteTo.File(Directories.InLogs(".log"), rollingInterval: RollingInterval.Hour, restrictedToMinimumLevel: LogEventLevel.Verbose)
+            {
+                var c = new LoggerConfiguration()
+                       .MinimumLevel.Verbose()
+                       .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                       .Enrich.FromLogContext()
+                       .WriteTo.File(Directories.InLogs(".log"), rollingInterval: RollingInterval.Hour, restrictedToMinimumLevel: LogEventLevel.Verbose)
 #if DEBUG
-                   .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Debug)
+                       .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Debug)
 #else
-                   .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Information)
+                       .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Information)
 #endif
-                   .WriteTo.TelegramBot(Settings<APISettings>.Current.EventChannelId, TelegramBot, LogEventLevel.Warning, "API")
-                   .CreateLogger();
+                       ;
+                
+                if(Settings<APISettings>.Current.EventChannelId is not null)
+                    c.WriteTo.TelegramBot(Settings<APISettings>.Current.EventChannelId, TelegramBot, LogEventLevel.Warning, "API");
+
+                Log.Logger = c.CreateLogger();
+            }
 
             foreach (var x in typeof(Directories).GetFields(BindingFlags.Static | BindingFlags.Public))
                 Log.Information($"{x.Name} directory @ {x.GetValue(null)}");
