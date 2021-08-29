@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
+using System.Security.Principal;
 using System.Threading.Tasks;
 
 namespace D_API.Types
@@ -30,19 +32,19 @@ namespace D_API.Types
                 new();
         }
 
-        public async Task<bool> CheckAccess(string role, string file)
+        public async Task<bool> CheckAccess(ClaimsPrincipal id, string file)
         {
             using (await Mutex.LockAsync())
-                return !AccessDict.ContainsKey(file) || AccessDict[file] == role;
+                return !AccessDict.ContainsKey(file) || AccessDict[file] == id.Identity!.Name!;
         }
 
-        public async Task NewFile(string role, string file)
+        public async Task NewFile(ClaimsPrincipal id, string file)
         {
-            if (AccessDict.TryGetValue(file, out var result) && role == result)
+            if (AccessDict.TryGetValue(file, out var result) && id.Identity!.Name! == result)
                 return;
             using (await Mutex.LockAsync())
             {
-                AccessDict[file] = role;
+                AccessDict[file] = id.Identity!.Name!;
                 await Serialization.Serialize.JsonAsync(AccessDict, Directories.InData("AppDataAccess"), Filename);
             }
         }

@@ -32,7 +32,7 @@ namespace D_API.Controllers
         public async Task<IActionResult> GetConfig(string appname)
         {
             var s = Directories.InAppDataHost(appname);
-            return System.IO.File.Exists(s) ? await Keeper.CheckAccess(User.Identity!.Name!, s) ? Ok(await ReadFile(s)) : Forbid() : NotFound();
+            return System.IO.File.Exists(s) ? await Keeper.CheckAccess(User, s) ? Ok(await ReadFile(s)) : Forbid() : NotFound();
         }
 
         [HttpPost("config/{appname}")]
@@ -43,10 +43,10 @@ namespace D_API.Controllers
         {
             var file = Directories.InAppDataHost(appname);
 
-            if (!await Keeper.CheckAccess(User.Identity!.Name!, file))
+            if (!await Keeper.CheckAccess(User, file))
                 return Forbid();
 
-            await Keeper.NewFile(User.Identity!.Name!, file);
+            await Keeper.NewFile(User, file);
 
             if (!ow && System.IO.File.Exists(file))
                 return Unauthorized("File already exists, cannot assume overwrite. If you wish to overwrite it, please use \"config/{appname}/true\"");
