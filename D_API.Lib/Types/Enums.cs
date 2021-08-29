@@ -4,7 +4,7 @@ using System.Text;
 
 namespace D_API.Lib.Types
 {
-    public enum Roles
+    public enum Role
     {
         Unauthenticated = -1,
         None = 0,
