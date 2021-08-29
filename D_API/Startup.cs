@@ -20,6 +20,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using D_API.Types;
+using Microsoft.AspNetCore.HttpOverrides;
+using System.Net;
 
 namespace D_API
 {
@@ -60,6 +62,11 @@ namespace D_API
                 services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
                 services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
+                //services.Configure<ForwardedHeadersOptions>(options =>
+                //{
+                //    options.KnownProxies.Add(IPAddress.Parse("10.0.0.100"));
+                //}); //Not necessary as of now
+
                 services.AddControllers();
                 services.AddAuthentication(x =>
                 {
@@ -91,6 +98,11 @@ namespace D_API
             // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
             public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
             {
+                app.UseForwardedHeaders(new ForwardedHeadersOptions
+                {
+                    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+                });
+
                 if (env.IsDevelopment())
                 {
                     app.UseDeveloperExceptionPage();
