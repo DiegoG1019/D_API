@@ -38,7 +38,7 @@ namespace D_API.Types
             int r;
             await id.CheckAuthValidity();
             using (await Mutex.LockAsync())
-                r = !AccessDict.ContainsKey(file) ? AccessDict[file] == id.Identity!.Name ? 1 : id.IsInRole("root") ? 2 : 0 : 0;
+                r = AccessDict.ContainsKey(file) ? AccessDict[file] == id.Identity!.Name ? 1 : id.IsInRole("root") ? 2 : 0 : 0;
             Log.Information($"User {id.Identity!.Name} accessed {file} because they're {(r is 1 ? "the owner" : r is 2 ? "root" : "neither. ERROR!")}.");
             return r > 0;
         }
