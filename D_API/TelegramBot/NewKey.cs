@@ -29,11 +29,11 @@ namespace D_API.TelegramBot
 
         public async Task<CommandResponse> Action(BotCommandArguments args)
         {
-            while (Startup.Auth is null)
+            while (Program.Auth is null)
                 await Task.Delay(500);
 
             var a = args.Arguments;
-            var r = a.Length is > 2 ? $"```{Startup.Auth.Authenticate(a[1], a[2])}```" : "Not enough arguments";
+            var r = a.Length is > 2 ? $"```{Program.Auth.Authenticate(a[1], a[2])}```" : "Not enough arguments";
             return new CommandResponse(false, b => b.SendTextMessageAsync(args.Message.Chat, r, Telegram.Bot.Types.Enums.ParseMode.MarkdownV2));
         }
 

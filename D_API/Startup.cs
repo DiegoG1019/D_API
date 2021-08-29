@@ -25,10 +25,9 @@ namespace D_API
 {
     public static partial class Program
     {
+        public static IAuth Auth { get; private set; }
         public class Startup
         {
-            public static IAuth Auth { get; private set; }
-            
             public Startup(IConfiguration configuration)
             {
                 Configuration = configuration;
