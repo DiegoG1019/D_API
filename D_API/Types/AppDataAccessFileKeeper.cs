@@ -34,12 +34,14 @@ namespace D_API.Types
 
         public async Task<bool> CheckAccess(ClaimsPrincipal id, string file)
         {
+            await id.CheckAuthValidity();
             using (await Mutex.LockAsync())
                 return !AccessDict.ContainsKey(file) || id.IsInRole("root") || AccessDict[file] == id.Identity!.Name!;
         }
 
         public async Task NewFile(ClaimsPrincipal id, string file)
         {
+            await id.CheckAuthValidity();
             if (AccessDict.TryGetValue(file, out var result))
                 if (id.Identity!.Name! == result)
                     return;
