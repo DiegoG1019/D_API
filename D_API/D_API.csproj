@@ -19,6 +19,7 @@
     <PackageReference Include="DiegoG.Utilities.Other" Version="1.0.0" />
     <PackageReference Include="DiegoG.Utilities.Reflection" Version="1.1.2" />
     <PackageReference Include="DiegoG.Utilities.Serialization" Version="1.0.0" />
+    <PackageReference Include="Humanizer.Core" Version="2.11.10" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.9" />
     <PackageReference Include="Nito.AsyncEx.Coordination" Version="5.1.0" />
