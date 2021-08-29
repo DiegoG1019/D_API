@@ -7,6 +7,12 @@ using System.Threading.Tasks;
 
 namespace D_API
 {
+    public static class Roles
+    {
+        public const string Root = "root";
+        public const string Moderator = "mod,admin,root";
+        public const string Administrator = "admin,root";
+    }
     public static class Helper
     {
         public static async Task CheckAuthValidity(this ClaimsPrincipal user)
