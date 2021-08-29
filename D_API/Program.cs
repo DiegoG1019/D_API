@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 
 namespace D_API
 {
+    public static partial class Program
     {
         private readonly static Stopwatch stopwatch = new();
         private readonly static Stopwatch startwatch = new();

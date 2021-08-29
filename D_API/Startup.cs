@@ -23,90 +23,98 @@ using D_API.Types;
 
 namespace D_API
 {
-    public class Startup
+    public static partial class Program
     {
-        public static IAuth Auth { get; private set; }
-        public Startup(IConfiguration configuration)
+        public class Startup
         {
-            Configuration = configuration;
-        }
-
-        public IConfiguration Configuration { get; }
-
-        // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
-        {
-            string key;
+            public static IAuth Auth { get; private set; }
+            
+            public Startup(IConfiguration configuration)
             {
-                var args = Environment.GetCommandLineArgs();
-                if (args.Length is > 1)
-                    key = args[1];
-                else
+                Configuration = configuration;
+            }
+
+            public IConfiguration Configuration { get; }
+
+            // This method gets called by the runtime. Use this method to add services to the container.
+            public void ConfigureServices(IServiceCollection services)
+            {
+                string key;
                 {
-                    Log.Error("Could not obtain a security key from command line arguments. Using default key instead.");
-                    key = "qgBVG:Qv7W?ns7Rf_eRdA2J,~NayIrYKr?X%PX@YcOi!IgHV@5Ln:jeGYVb1Smc+";
+                    var args = Environment.GetCommandLineArgs();
+                    if (args.Length is > 1)
+                        key = args[1];
+                    else
+                    {
+                        Log.Error("Could not obtain a security key from command line arguments. Using default key instead.");
+                        key = "qgBVG:Qv7W?ns7Rf_eRdA2J,~NayIrYKr?X%PX@YcOi!IgHV@5Ln:jeGYVb1Smc+";
+                    }
                 }
-            }
 
-            services.AddOptions();
-            services.AddMemoryCache();
-            services.Configure<ClientRateLimitOptions>(Configuration.GetSection("ClientRateLimiting"));
-            services.Configure<ClientRateLimitOptions>(Configuration.GetSection("ClientRateLimitPolicies"));
+                services.AddOptions();
+                services.AddMemoryCache();
+                services.Configure<ClientRateLimitOptions>(Configuration.GetSection("ClientRateLimiting"));
+                services.Configure<ClientRateLimitOptions>(Configuration.GetSection("ClientRateLimitPolicies"));
 
-            services.AddInMemoryRateLimiting();
+                services.AddInMemoryRateLimiting();
 
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+                services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+                services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
-            services.AddControllers();
-            services.AddAuthentication(x =>
-            {
-                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(x =>
-            {
-#if DEBUG
-                x.RequireHttpsMetadata = false;
-#endif
-                x.Audience = Settings<APISettings>.Current.Security.Audience;
-                x.SaveToken = true;
-                x.TokenValidationParameters = new TokenValidationParameters
+                services.AddControllers();
+                services.AddAuthentication(x =>
                 {
-                    ValidateIssuerSigningKey = true,
-                    ValidateIssuer = false,
-                    ValidateAudience = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key))
-                };
-            });
+                    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                }).AddJwtBearer(x =>
+                {
+#if DEBUG
+                    x.RequireHttpsMetadata = false;
+#endif
+                    x.Audience = Settings<APISettings>.Current.Security.Audience;
+                    x.SaveToken = true;
+                    x.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        ValidateIssuer = false,
+                        ValidateAudience = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key))
+                    };
+                });
 
-            Auth = new JwtAuth(key);
-            services.AddSingleton<IAuth>(Auth);
-            services.AddSingleton<IAppDataAccessKeeper>(new AppDataAccessFileKeeper("main"));
-            services.AddControllers();
-            services.AddSwaggerGen(c => c.SwaggerDoc("v1", new OpenApiInfo { Title = "D_API", Version = "v1" }));
-        }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "D_API v1"));
+                Auth = new JwtAuth(key);
+                services.AddSingleton<IAuth>(Auth);
+                services.AddSingleton<IAppDataAccessKeeper>(new AppDataAccessFileKeeper("main"));
+                services.AddControllers();
+                services.AddSwaggerGen(c => c.SwaggerDoc("v1", new OpenApiInfo { Title = "D_API", Version = "v1" }));
             }
 
-            app.UseClientRateLimiting();
+            // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+            public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+            {
+                if (env.IsDevelopment())
+                {
+                    app.UseDeveloperExceptionPage();
+                    app.UseSwagger();
+                    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "D_API v1"));
+                }
 
-            app.UseHttpsRedirection();
+                app.UseClientRateLimiting();
 
-            app.UseRouting();
+                app.UseHttpsRedirection();
 
-            app.UseAuthentication();
+                app.UseRouting();
 
-            app.UseAuthorization();
+                app.UseAuthentication();
 
-            app.UseEndpoints(endpoints => endpoints.MapControllers());
+                app.UseAuthorization();
+
+                app.UseEndpoints(endpoints => endpoints.MapControllers());
+
+                startwatch.Stop();
+                StartupTime = startwatch.Elapsed;
+                stopwatch.Start();
+            }
         }
     }
 }
