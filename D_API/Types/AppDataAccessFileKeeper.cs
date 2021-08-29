@@ -1,5 +1,6 @@
 ﻿using DiegoG.Utilities.IO;
 using Nito.AsyncEx;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -34,9 +35,12 @@ namespace D_API.Types
 
         public async Task<bool> CheckAccess(ClaimsPrincipal id, string file)
         {
+            int r;
             await id.CheckAuthValidity();
             using (await Mutex.LockAsync())
-                return !AccessDict.ContainsKey(file) || id.IsInRole("root") || AccessDict[file] == id.Identity!.Name!;
+                r = !AccessDict.ContainsKey(file) ? AccessDict[file] == id.Identity!.Name ? 1 : id.IsInRole("root") ? 2 : 0 : 0;
+            Log.Information($"User {id.Identity!.Name} accessed {file} because they're {(r is 1 ? "the owner" : r is 2 ? "root" : "neither. ERROR!")}.");
+            return r > 0;
         }
 
         public async Task NewFile(ClaimsPrincipal id, string file)
@@ -48,6 +52,7 @@ namespace D_API.Types
                 else if (id.IsInRole("root"))
                     return;
 
+            Log.Information($"User {id.Identity!.Name!}");
             using (await Mutex.LockAsync())
             {
                 AccessDict[file] = id.Identity!.Name!;
