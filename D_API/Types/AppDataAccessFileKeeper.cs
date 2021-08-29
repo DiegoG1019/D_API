@@ -40,8 +40,12 @@ namespace D_API.Types
 
         public async Task NewFile(ClaimsPrincipal id, string file)
         {
-            if (AccessDict.TryGetValue(file, out var result) && id.Identity!.Name! == result)
-                return;
+            if (AccessDict.TryGetValue(file, out var result))
+                if (id.Identity!.Name! == result)
+                    return;
+                else if (id.IsInRole("root"))
+                    return;
+
             using (await Mutex.LockAsync())
             {
                 AccessDict[file] = id.Identity!.Name!;
