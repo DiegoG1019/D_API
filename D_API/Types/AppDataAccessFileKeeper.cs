@@ -35,7 +35,7 @@ namespace D_API.Types
         public async Task<bool> CheckAccess(ClaimsPrincipal id, string file)
         {
             using (await Mutex.LockAsync())
-                return !AccessDict.ContainsKey(file) || AccessDict[file] == id.Identity!.Name!;
+                return !AccessDict.ContainsKey(file) || id.IsInRole("root") || AccessDict[file] == id.Identity!.Name!;
         }
 
         public async Task NewFile(ClaimsPrincipal id, string file)
