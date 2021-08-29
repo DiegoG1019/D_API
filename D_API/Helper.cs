@@ -9,7 +9,7 @@ namespace D_API
 {
     public static class Helper
     {
-        public static void CheckAuthValidity(ClaimsPrincipal user)
+        public static void CheckAuthValidity(this ClaimsPrincipal user)
         {
             if (user.Identity?.Name is null)
             {
