@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "D_API", "D_API\D_API.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "D_API.Test", "D_API.Test\D_API.Test.csproj", "{F215CA40-6B7B-443E-B2DE-D7B9ACBC17A2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "D_API.Lib", "D_API.Lib\D_API.Lib.csproj", "{E17AF2E5-D251-40AA-8555-783FA3E8F4B1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{F215CA40-6B7B-443E-B2DE-D7B9ACBC17A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F215CA40-6B7B-443E-B2DE-D7B9ACBC17A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F215CA40-6B7B-443E-B2DE-D7B9ACBC17A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E17AF2E5-D251-40AA-8555-783FA3E8F4B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E17AF2E5-D251-40AA-8555-783FA3E8F4B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E17AF2E5-D251-40AA-8555-783FA3E8F4B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E17AF2E5-D251-40AA-8555-783FA3E8F4B1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
