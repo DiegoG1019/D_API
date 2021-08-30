@@ -1,6 +1,10 @@
 # D_API
 
-# Table of Contents
+D_API is a personal project to practice API building, security, authorization and serving
+
+I'll be using it primarily for some of my own applications where I'd like certain configuration or other information to be readily available from a central, trusted location (and with known disk permanence, as opposed to some projects)
+
+## Table of Contents
 - [Installation](#installation)
 	- [Configuration](#configuration)
 - [Usage](#usage)
@@ -11,10 +15,6 @@
 - [Contributing](#contributing)
 - [License](#license)
 - [Support My Project](#support-my-projects)
-
-D_API is a personal project to practice API building, security, authorization and serving
-
-I'll be using it primarily for some of my own applications where I'd like certain configuration or other information to be readily available from a central, trusted location (and with known disk permanence, as opposed to some projects)
 
 ## Installation
 The installation process is much like any other ASP.NET API Project: Set up a reverse proxy, open up the firewall and run the thing
