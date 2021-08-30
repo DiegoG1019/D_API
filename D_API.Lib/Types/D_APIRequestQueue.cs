@@ -1,4 +1,5 @@
 ﻿using Nito.AsyncEx;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -94,6 +95,7 @@ namespace D_API.Lib.Types
                             }
                             catch(Exception exc)
                             {
+                                Log.Error($"A Queued Request failed: {exc.GetType().Name} {exc.Message}");
                                 return;
                             }
                         });
