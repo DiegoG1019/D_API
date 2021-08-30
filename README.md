@@ -21,6 +21,11 @@ The program will create a `apisettings.cfg.json` file somewhere in the file syst
 Other than all that, it's also __highly__ recommended that the user passes a private generation key to the app as a command line argument, as the default key, albeit randomly generated and hard to memorize, is OPEN SOURCE and a SECURITY LIABILITY
 
 ## Usage
+
+### Client
+I've developed a [Client](/D_API.Lib/) to simplify the usage of the API in your app, it offers methods for every endpoint and is comprehensively customizable, and is complete with automatic [rate limiting](/D_API.Lib/Types/D_APIRequestQueue.cs)
+Refer to the appropiate [README](/D_API.Lib/README.md) for more info.
+
 ### Generating new API Keys (Json Web Tokens (jwt))
 That's what the bot is for! Assumming you've configured everything correctly as per the previous section, all you need to do is go over to the Telegram bot you registered, type `/help`, and it'll tell you what to do
 
