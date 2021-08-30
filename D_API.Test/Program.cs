@@ -6,6 +6,7 @@ using static System.Console;
 using static D_API.Test.Helper;
 using D_API.Lib.Exceptions;
 using DiegoG.Utilities;
+using Serilog;
 
 namespace D_API.Test
 {
@@ -18,6 +19,8 @@ namespace D_API.Test
             Settings<TestSettings>.Initialize(".config", "settings");
             Write("Insert APIKey\n> ");
             Client = new(Settings<TestSettings>.Current.BaseAddress ?? "https://localhost:44379/", ReadLine());
+
+            Log.Logger = new LoggerConfiguration().MinimumLevel.Verbose().WriteTo.Console().CreateLogger();
 
             await TestQueue();
             await TestProbe();
