@@ -65,23 +65,73 @@ namespace D_API.Lib.Types
         }
 
         public Task<T> NewRequest<T>(Func<Task<T>> func)
-        {
-
-        }
+            => Task.Run(async () =>
+            {
+                T result = default;
+                bool done = false;
+                QueuedTasks.Enqueue(async () =>
+                {
+                    await func();
+                    done = true;
+                });
+                while (true)
+                    if (!done)
+                        await Task.Delay(50);
+                    else
+                        break;
+                return result!;
+            });
 
         public Task<T> NewRequest<T>(Func<T> func)
-        {
-            throw new NotImplementedException();
-        }
+            => Task.Run(async () =>
+            {
+                T result = default;
+                bool done = false;
+                QueuedTasks.Enqueue(() =>
+                {
+                    func();
+                    done = true;
+                    return Task.CompletedTask;
+                });
+                while (true)
+                    if (!done)
+                        await Task.Delay(50);
+                    else
+                        break;
+                return result!;
+            });
 
         public Task NewRequest(Func<Task> func)
-        {
-            throw new NotImplementedException();
-        }
+            => Task.Run(async () =>
+            {
+                bool done = false;
+                QueuedTasks.Enqueue(async () =>
+                {
+                    await func();
+                    done = true;
+                });
+                while (true)
+                    if (!done)
+                        await Task.Delay(50);
+                    else
+                        break;
+            });
 
         public Task NewRequest(Action func)
-        {
-            throw new NotImplementedException();
-        }
+            => Task.Run(async () =>
+            {
+                bool done = false;
+                QueuedTasks.Enqueue(() =>
+                {
+                    func();
+                    done = true;
+                    return Task.CompletedTask;
+                });
+                while (true)
+                    if (!done)
+                        await Task.Delay(50);
+                    else
+                        break;
+            });
     }
 }
