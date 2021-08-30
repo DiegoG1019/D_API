@@ -36,7 +36,7 @@ Defined in [TestController.cs](/D_API/Controllers/TestController.cs), this contr
 Defined in [AppDataHost.cs](/D_API/Controllers/AppDataHost.cs), this controller has the following `endpoints`:
 - `GET:*/api/v1/appdatahost/config/{appname}`: Obtains the data associated with the given `appname`, can only be used by authenticated users. Returns `200 Ok` response along with the data if found and the user (The `name` value given when generating the key) is the original writer, `403 Forbidden` if the data is found but the user is not the original writer, and `404 Not Found` if the data is simply not there
 - `POST:*/api/v1/appdatahost/config/{appname}/`: Equals `POST:*/api/v1/appdatahost/config/{appname}/false`
-- `POST*/api/v1/appdatahost/config/{appname}/{ow}`: Saves the contents of the request's body to a non-volatile (Survives server and machine downtime) location, if the user is the original writer, or the data did not previously exist. Cannot overwrite existing data even if access is granted, unless `ow` is set to `true`
+- `POST:*/api/v1/appdatahost/config/{appname}/{ow}`: Saves the contents of the request's body to a non-volatile (Survives server and machine downtime) location, if the user is the original writer, or the data did not previously exist. Cannot overwrite existing data even if access is granted, unless `ow` is set to `true`
 
 *Privacy Notice:* Users under the `root` role have unrestricted (read/write) access to this data, as long as they know the appname its registered under. Saved data cannot be enumerated through the API (Guaranteed true only in [The original repo](https://github.com/DiegoG1019/D_API/))
 
@@ -47,6 +47,7 @@ The default rate limits are:
 - Within 1 minute, a maximum of 80 requests are allowed. _If you were to send 80 requests every minute for 12 hours, you'd send 57,600 requests. But..._
 - Within 12 hours, a maximum of 25,000 requests are allowed. _If you were to send 25,000 requests every 12 hours for a week, you'd send 350,000 requests. But..._
 - Within a week, a maximum of 100,000 requests are allowed. _If you were to send 100,000 requests every week for 30 days, you'd send 1,500,000 requests. Please don't._
+
 If you wish to change these, refer to [appsettings.json](/D_API/appsettings.json)
 
 ## Contributing
