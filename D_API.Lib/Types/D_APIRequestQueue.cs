@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Nito.AsyncEx;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
@@ -6,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace D_API.Lib.Types
 {
+#warning There's currently no way to know how many requests we still have available
     public class D_APIRequestQueue : IRequestQueue
     {
         private readonly Task Running;
@@ -20,6 +22,13 @@ namespace D_API.Lib.Types
         };
 
         private readonly Queue<Func<Task>> QueuedTasks = new Queue<Func<Task>>();
+
+        private readonly AsyncLock Lock = new AsyncLock();
+        protected async Task EnqueueTask(Func<Task> func)
+        {
+            using (await Lock.LockAsync())
+                QueuedTasks.Enqueue(func);
+        }
 
         protected readonly CancellationTokenSource TokenSource = new CancellationTokenSource();
 
@@ -36,11 +45,27 @@ namespace D_API.Lib.Types
             WhileContinue:;
                 await Task.Delay(500);
 
+                //   Queue Clearing
+                // ------------------
+
+                while (ImmediateRequests.Count > 0)
+                    if (ImmediateRequests.Peek() <= DateTime.Now)
+                        ImmediateRequests.Dequeue();
+                    else
+                        break;
+                foreach (var (Dates, _) in Requests)
+                    while (Dates.Count > 0)
+                        if (Dates.Peek() <= DateTime.Now)
+                            Dates.Dequeue();
+                        else
+                            break;
+
                 //   Available requests
                 // ----------------------
 
-                if (QueuedTasks.Count is 0)
-                    continue;
+                using (await Lock.LockAsync())
+                    if (QueuedTasks.Count is 0)
+                        continue;
 
                 int x = 5 - ImmediateRequests.Count;
                 if (x <= 0)
@@ -58,8 +83,26 @@ namespace D_API.Lib.Types
                 // --------------------
 
                 var arr = new Task[x];
-                for (int i = 0; i < x && QueuedTasks.Count > 0; i++)
-                    arr[i] = QueuedTasks.Dequeue()();
+                using(await Lock.LockAsync())
+                    for (int i = 0; i < x && QueuedTasks.Count > 0; i++)
+                    {
+                        arr[i] = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                await QueuedTasks.Dequeue()();
+                            }
+                            catch(Exception exc)
+                            {
+                                return;
+                            }
+                        });
+                        var date = DateTime.Now;
+                        ImmediateRequests.Enqueue(date + TimeSpan.FromSeconds(1));
+                        Requests[0].Dates.Enqueue(date + TimeSpan.FromMinutes(1));
+                        Requests[1].Dates.Enqueue(date + TimeSpan.FromHours(12));
+                        Requests[2].Dates.Enqueue(date + TimeSpan.FromDays(7));
+                    }
                 await Task.WhenAll(arr);
             }
         }
@@ -69,7 +112,7 @@ namespace D_API.Lib.Types
             {
                 T result = default;
                 bool done = false;
-                QueuedTasks.Enqueue(async () =>
+                await EnqueueTask(async () =>
                 {
                     await func();
                     done = true;
@@ -87,7 +130,7 @@ namespace D_API.Lib.Types
             {
                 T result = default;
                 bool done = false;
-                QueuedTasks.Enqueue(() =>
+                await EnqueueTask(() =>
                 {
                     func();
                     done = true;
@@ -105,7 +148,7 @@ namespace D_API.Lib.Types
             => Task.Run(async () =>
             {
                 bool done = false;
-                QueuedTasks.Enqueue(async () =>
+                await EnqueueTask(async () =>
                 {
                     await func();
                     done = true;
@@ -121,7 +164,7 @@ namespace D_API.Lib.Types
             => Task.Run(async () =>
             {
                 bool done = false;
-                QueuedTasks.Enqueue(() =>
+                await EnqueueTask(() =>
                 {
                     func();
                     done = true;
