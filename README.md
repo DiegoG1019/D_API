@@ -4,6 +4,18 @@ D_API is a personal project to practice API building, security, authorization an
 
 I'll be using it primarily for some of my own applications where I'd like certain configuration or other information to be readily available from a central, trusted location (and with known disk permanence, as opposed to some projects)
 
+## Table of Contents
+- [Installation](#installation)
+	- [Configuration](#configuration)
+- [Usage](#usage)
+	- [Client](#client)
+	- [Generating API Keys](#generating-new-api-keys-json-web-tokens-jwt)
+	- [Endpoints](#endpoints)
+	- [Rate Limiting](#rate-limiting)
+- [Contributing](#contributing)
+- [License](#license)
+- [Support My Project](#support-my-projects)
+
 ## Installation
 The installation process is much like any other ASP.NET API Project: Set up a reverse proxy, open up the firewall and run the thing
 
@@ -29,19 +41,21 @@ Refer to the appropiate [README](/D_API.Lib/README.md) for more info.
 ### Generating new API Keys (Json Web Tokens (jwt))
 That's what the bot is for! Assumming you've configured everything correctly as per the previous section, all you need to do is go over to the Telegram bot you registered, type `/help`, and it'll tell you what to do
 
-### API/TEST
-Defined in [TestController.cs](/D_API/Controllers/TestController.cs), this controller has the following `endpoints`:
-- `GET:*/api/test/probe`: Probes the API to see if it's alive, can be used anonymously (without a JWT)
-- `GET:*/api/test/probeAuth`: Probes the API, can only be used by authenticated users, under any role
-- `GET:*/api/test/probeAuthMod`: Probes the API, can only be used by authenticated users under the `mod`, `admin`, or `root` roles
-- `GET:*/api/test/probeAuthAdmin`: Probes the API, can only be used by authenticated users under the `admin` or `root` roles
-- `GET:*/api/test/probeAuthRoot`: Probes the API, can only be used by authenticated users under the `root` roles
+### Endpoints
 
-### API/v1/AppDataHost
-Defined in [AppDataHost.cs](/D_API/Controllers/AppDataHost.cs), this controller has the following `endpoints`:
-- `GET:*/api/v1/appdatahost/config/{appname}`: Obtains the data associated with the given `appname`, can only be used by authenticated users. Returns `200 Ok` response along with the data if found and the user (The `name` value given when generating the key) is the original writer, `403 Forbidden` if the data is found but the user is not the original writer, and `404 Not Found` if the data is simply not there
-- `POST:*/api/v1/appdatahost/config/{appname}/`: Equals `POST:*/api/v1/appdatahost/config/{appname}/false`
-- `POST:*/api/v1/appdatahost/config/{appname}/{ow}`: Saves the contents of the request's body to a non-volatile (Survives server and machine downtime) location, if the user is the original writer, or the data did not previously exist. Cannot overwrite existing data even if access is granted, unless `ow` is set to `true`
+* API/TEST
+	Defined in [TestController.cs](/D_API/Controllers/TestController.cs), this controller has the following `endpoints`:
+	- `GET:*/api/test/probe`: Probes the API to see if it's alive, can be used anonymously (without a JWT)
+	- `GET:*/api/test/probeAuth`: Probes the API, can only be used by authenticated users, under any role
+	- `GET:*/api/test/probeAuthMod`: Probes the API, can only be used by authenticated users under the `mod`, `admin`, or `root` roles
+	- `GET:*/api/test/probeAuthAdmin`: Probes the API, can only be used by authenticated users under the `admin` or `root` roles
+	- `GET:*/api/test/probeAuthRoot`: Probes the API, can only be used by authenticated users under the `root` roles
+
+* API/v1/AppDataHost
+	Defined in [AppDataHost.cs](/D_API/Controllers/AppDataHost.cs), this controller has the following `endpoints`:
+	- `GET:*/api/v1/appdatahost/config/{appname}`: Obtains the data associated with the given `appname`, can only be used by authenticated users. Returns `200 Ok` response along with the data if found and the user (The `name` value given when generating the key) is the original writer, `403 Forbidden` if the data is found but the user is not the original writer, and `404 Not Found` if the data is simply not there
+	- `POST:*/api/v1/appdatahost/config/{appname}/`: Equals `POST:*/api/v1/appdatahost/config/{appname}/false`
+	- `POST:*/api/v1/appdatahost/config/{appname}/{ow}`: Saves the contents of the request's body to a non-volatile (Survives server and machine downtime) location, if the user is the original writer, or the data did not previously exist. Cannot overwrite existing data even if access is granted, unless `ow` is set to `true`
 
 *Privacy Notice:* Users under the `root` role have unrestricted (read/write) access to this data, as long as they know the appname its registered under. Saved data cannot be enumerated through the API (Guaranteed true only in [The original repo](https://github.com/DiegoG1019/D_API/))
 
