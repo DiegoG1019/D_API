@@ -24,7 +24,11 @@ namespace D_API.Test
         [Test(Author = "Diego Garcia", Description = "Bombard the Rate Limiting Queue to see if it works", ExpectedResult = "The Queue eventually clearing")]
         public async Task TestQueue()
         {
-
+            Task[] tasks = new Task[30];
+            for (int i = 0; i < 30; i++)
+                tasks[i] = Client.Probe();
+            await Task.Delay(2000);
+            await Task.WhenAll(tasks);
         }
 
         [Test(Author = "Diego Garcia", Description = "Tests if AppData works as intended", ExpectedResult = "Passing")]
