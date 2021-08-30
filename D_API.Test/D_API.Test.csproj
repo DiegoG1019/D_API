@@ -1,16 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
-
-    <IsPackable>false</IsPackable>
-
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="DiegoG.Utilities.Basic" Version="1.0.2" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
   </ItemGroup>
 
   <ItemGroup>

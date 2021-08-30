@@ -35,6 +35,12 @@ namespace D_API.Test
             ResultsDictionary.Remove(caller);
             return r;
         }
+
+        public static void PrintResults([CallerMemberName] string caller = null)
+        {
+            foreach (var x in GetResults(caller))
+                Console.WriteLine(x);
+        }
         #endregion
     }
 }
