@@ -35,5 +35,48 @@ namespace D_API.Lib
             Config = config ?? new D_APIClientConfig();
         }
         public D_APIClient(HttpClient client, string? address = null, string? key = null) : this(client, address != null ? new Uri(address) : null, key) { }
+
+        private Role? RoleField;
+        public async Task<Role> GetRole()
+        {
+            using (await Lock.LockAsync())
+            {
+                if (RoleField is null)
+                    RoleField = await Http.GetFromJsonAsync<Role>("api/test/proberole");
+                return (Role)RoleField;
+            }
+        }
+
+        public Task<bool> ProbeAuthRoot() => Probe_("probeauthroot");
+        public Task<bool> ProbeAuthAdmin() => Probe_("probeauthadmin");
+        public Task<bool> ProbeAuthMod() => Probe_("probeauthmod");
+        public Task<bool> ProbeAuth() => Probe_("probeauth");
+        public Task<bool> Probe() => Probe_("probe");
+        private async Task<bool> Probe_(string endpoint)
+        {
+            try
+            {
+                return (await Http.GetAsync($"api/test/{endpoint}")).IsSuccessStatusCode;
+            }
+            catch (TimeoutException)
+            {
+                return false;
+            }
+        }
+
+        public async Task<T> GetAppData<T>(string appname)
+        {
+            var r = await Http.GetAsync($"api/v1/appdatahost/config/{appname}");
+            if (r.StatusCode is HttpStatusCode.OK)
+                return await r.Content.ReadFromJsonAsync<T>();
+            if (r.StatusCode is HttpStatusCode.Forbidden)
+                throw new D_APIException($"This client is not logged in as the owner of {appname}");
+            if (r.StatusCode is HttpStatusCode.NotFound)
+                throw new D_APIException($"There is no data under {appname}");
+            throw new D_APIException("Unknown");
+        }
+
+        public Task PostAppData<T>(string appname, T data, bool overwrite = false)
+            => Http.PostAsJsonAsync($"api/v1/appdatahost/config/{appname}/{overwrite}", data);
     }
 }
