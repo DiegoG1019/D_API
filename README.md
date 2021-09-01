@@ -44,6 +44,8 @@ That's what the bot is for! Assumming you've configured everything correctly as 
 ### Endpoints
 
 * API/TEST
+	This controller contains methods intended to be used to test the API and probe its availability
+	
 	Defined in [TestController.cs](/D_API/Controllers/TestController.cs), this controller has the following `endpoints`:
 	- `GET:*/api/test/probe`: Probes the API to see if it's alive, can be used anonymously (without a JWT)
 	- `GET:*/api/test/probeAuth`: Probes the API, can only be used by authenticated users, under any role
@@ -52,6 +54,8 @@ That's what the bot is for! Assumming you've configured everything correctly as 
 	- `GET:*/api/test/probeAuthRoot`: Probes the API, can only be used by authenticated users under the `root` roles
 
 * API/v1/AppDataHost
+	This controller is intended to be used to store information for certain apps, like configuration files for apps that are hosted in a location with no disk permanence, or otherwise where a secret, on location configuration file is not easily accesible or modifiable.
+
 	Defined in [AppDataHost.cs](/D_API/Controllers/AppDataHost.cs), this controller has the following `endpoints`:
 	- `GET:*/api/v1/appdatahost/config/{appname}`: Obtains the data associated with the given `appname`, can only be used by authenticated users. Returns `200 Ok` response along with the data if found and the user (The `name` value given when generating the key) is the original writer, `403 Forbidden` if the data is found but the user is not the original writer, and `404 Not Found` if the data is simply not there
 	- `POST:*/api/v1/appdatahost/config/{appname}/`: Equals `POST:*/api/v1/appdatahost/config/{appname}/false`
