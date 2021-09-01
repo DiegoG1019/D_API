@@ -44,6 +44,7 @@ That's what the bot is for! Assumming you've configured everything correctly as 
 ### Endpoints
 
 * API/TEST
+	
 	This controller contains methods intended to be used to test the API and probe its availability
 	
 	Defined in [TestController.cs](/D_API/Controllers/TestController.cs), this controller has the following `endpoints`:
@@ -54,6 +55,7 @@ That's what the bot is for! Assumming you've configured everything correctly as 
 	- `GET:*/api/test/probeAuthRoot`: Probes the API, can only be used by authenticated users under the `root` roles
 
 * API/v1/AppDataHost
+	
 	This controller is intended to be used to store information for certain apps, like configuration files for apps that are hosted in a location with no disk permanence, or otherwise where a secret, on location configuration file is not easily accesible or modifiable.
 
 	Defined in [AppDataHost.cs](/D_API/Controllers/AppDataHost.cs), this controller has the following `endpoints`:
