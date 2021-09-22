@@ -13,9 +13,16 @@ namespace D_API
         public string SettingsType => "APISettings";
         public ulong Version => 1;
 
-        public string? APIKey { get; set; }
-        public List<long> AllowedUsers { get; set; } = new();
+        public string? TelegramAPIKey { get; set; }
+        public List<long> AllowedUsers { get; set; } = new() { 0 };
         public long? EventChannelId { get; set; } = 0;
+        
+        public string? ClientSecretHashKey { get; set; }
+
+        public string? JWTSecurityKey { get; set; }
+
+        public string? EncryptionKey { get; set; }
+        public string? EncryptionIV { get; set; }
 
         public Security_settings Security { get; init; } = new(); public class Security_settings
         {
