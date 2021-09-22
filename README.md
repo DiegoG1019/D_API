@@ -62,16 +62,31 @@ That's what the bot is for! Assumming you've configured everything correctly as 
 	- `GET:*/api/v1/appdatahost/config/{appname}`: Obtains the data associated with the given `appname`, can only be used by authenticated users. Returns `200 Ok` response along with the data if found and the user (The `name` value given when generating the key) is the original writer, `403 Forbidden` if the data is found but the user is not the original writer, and `404 Not Found` if the data is simply not there
 	- `POST:*/api/v1/appdatahost/config/{appname}/`: Equals `POST:*/api/v1/appdatahost/config/{appname}/false`
 	- `POST:*/api/v1/appdatahost/config/{appname}/{ow}`: Saves the contents of the request's body to a non-volatile (Survives server and machine downtime) location, if the user is the original writer, or the data did not previously exist. Cannot overwrite existing data even if access is granted, unless `ow` is set to `true`
+	
+* API/v1/Auth
+	
+	This controller is intended to facitiliate client authentication to request a JWT
+	
+	Defined in [AuthController.cs](/D_API/Controllers/AuthController.cs), this controller has the following `endpoints`:
+	- `GET:*/api/v1/newsession`: Requests a session token from the API, that lasts 1 hour, which will be granted if the user is succesfully authenticated through the credentials passed in the request body. Returns a `200 Ok` response along with the Session JWT if the user is succesfully authorized, a `401 Unauthorized` response along with an explanation, if the user failed authentication or if the user's credentials have been revoked; or a `403 Forbidden` response if the credentials are not recognized. The API may also return a `400 Bad Request` if the body is malformed, along with a list of problems. The token granted by this endpoint is only useful to request for Request tokens through renew
+	- `GET:*/api/v1/renew`: When the client uses a Session Token on this endpoint, the server will return a request token which will allow the client to issue requests to other endpoints in the API for 30 seconds, until they request a new one. Returns a `200 Ok` response along the Request JWT if the user is found and validated. `403 Forbidden` if the token is invalid. `401 Unauthorized` if the user key's could not be found.
+	- `GET:*/api/v1/status`: When the client uses a Request Token on this endpoint, the server will return an empty `200 Ok` response, signifying that the token is still valid. Otherwise it'll return an empty `401 Unauthorized` response. If, instead, the server receives a valid JWT that is not a Request Token, the server will return a `401 Unauthorized` response with a string explaining the issue.
 
 *Privacy Notice:* Users under the `root` role have unrestricted (read/write) access to this data, as long as they know the appname its registered under. Saved data cannot be enumerated through the API (Guaranteed true only in [The original repo](https://github.com/DiegoG1019/D_API/))
 
 ### Rate Limiting
 Just like basically any other API, there are rate limits for every user, to prevent abuse.
 The default rate limits are:
-- 5 Requests per second. _If you were to send 5 requests every second for a minute, you'd send 300 requests. But..._
-- Within 1 minute, a maximum of 80 requests are allowed. _If you were to send 80 requests every minute for 12 hours, you'd send 57,600 requests. But..._
-- Within 12 hours, a maximum of 25,000 requests are allowed. _If you were to send 25,000 requests every 12 hours for a week, you'd send 350,000 requests. But..._
-- Within a week, a maximum of 100,000 requests are allowed. _If you were to send 100,000 requests every week for 30 days, you'd send 1,500,000 requests. Please don't._
+- For `ALL` Endpoints:
+	- In a single second, a maximum of 5 requests are allowed.
+- For `*/api/test/*`:
+	- In a single second, a maximum of 2 requests are allowed.
+- For `*/api/v1/auth/*`:
+	- In a single second, a maximum of 1 requests are allowed.
+	
+Some endpoints are whitelisted from rate limiting, they are:
+- `*:/api/v1/auth/status`
+- `GET:/api/license` (currently inactive)
 
 If you wish to change these, refer to [appsettings.json](/D_API/appsettings.json)
 
