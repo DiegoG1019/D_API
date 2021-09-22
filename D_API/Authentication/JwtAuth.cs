@@ -1,4 +1,5 @@
-﻿using DiegoG.Utilities.Settings;
+﻿using D_API.Interfaces;
+using DiegoG.Utilities.Settings;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System;
@@ -6,44 +7,50 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace D_API.Authentication
+namespace D_API.Authentication;
+
+public class JwtAuth : IJwtProvider
 {
-    public class JwtAuth : IAuth
+    private readonly SymmetricSecurityKey TokenKey;
+    private readonly string? Audience;
+    private readonly string? Issuer;
+    public JwtAuth(SymmetricSecurityKey key, string? audience, string? issuer)
     {
-        private readonly string Key;
-        public JwtAuth(string key)
+        Audience = audience;
+        Issuer = issuer;
+        TokenKey = key;
+    }
+
+    public string? GenerateToken(string names, Guid key, TimeSpan duration, string roles)
+        => GenerateToken(names, key, duration, roles.Split(','));
+
+    public string? GenerateToken(string names, Guid key, TimeSpan duration, string[] roles)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+
+        var claims = new Claim[2 + roles.Length];
+        //claims[^3] = new Claim(ClaimTypes.NameIdentifier, key.ToString());
+        claims[^2] = new Claim(ClaimTypes.Name, names);
+        claims[^1] = new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString());
+        for (int i = 0; i < roles.Length; i++)
+            claims[i] = new Claim(ClaimTypes.Role, roles[i]);
+
+        var now = DateTime.UtcNow;
+        var tokenDescriptor = new SecurityTokenDescriptor()
         {
-            Key = key;
-        }
+            //NotBefore = now,
+            IssuedAt = now,
+            Expires = now.Add(duration),
+            Subject = new ClaimsIdentity(claims, "serverAuth"),
+            Audience = Audience,
+            Issuer = Issuer,
+            SigningCredentials = new SigningCredentials(TokenKey, SecurityAlgorithms.HmacSha256Signature)
+        };
 
-        public string? Authenticate(string name, string role)
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
-
-            var tokenKey = Encoding.ASCII.GetBytes(Key);
-
-            var tokenDescriptor = new SecurityTokenDescriptor()
-            {
-                Subject = new ClaimsIdentity(
-                    new Claim[]
-                    {
-                        new Claim(ClaimTypes.Name, name),
-                        new Claim(ClaimTypes.Role, role),
-                        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-                    }),
-                Expires = null,
-                Audience = Settings<APISettings>.Current.Security.Audience,
-                Issuer = Settings<APISettings>.Current.Security.Issuer,
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature)
-            };
-
-            Log.Warning($"Creating new Json Web Token: {name}, {role}");
-
-            return tokenHandler.WriteToken(tokenHandler.CreateToken(tokenDescriptor));
-        }
-        public string? Authenticate() => null;
+        return tokenHandler.WriteToken(tokenHandler.CreateToken(tokenDescriptor));
     }
 }
