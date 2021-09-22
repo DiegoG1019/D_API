@@ -1,5 +1,6 @@
-﻿using DiegoG.Utilities.IO;
-using Nito.AsyncEx;
+﻿using D_API.Interfaces;
+using DiegoG.Utilities.IO;
+using NeoSmart.AsyncLock;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ namespace D_API.Types
     {
         private static readonly List<string> LoadedFiles = new();
 
-        private readonly AsyncLock Mutex = new();
+        private readonly AsyncLock Alock = new();
         private readonly Dictionary<string, string> AccessDict;
         private readonly string Filename;
 
@@ -37,7 +38,7 @@ namespace D_API.Types
         {
             int r;
             await id.CheckAuthValidity();
-            using (await Mutex.LockAsync())
+            using (await Alock.LockAsync())
                r = AccessDict.ContainsKey(file) ? AccessDict[file] == id.Identity!.Name ? 1 : id.IsInRole("root") ? 2 : 0 : 3;
 
             if (r > 0)
@@ -58,7 +59,7 @@ namespace D_API.Types
                     return;
 
             Log.Information($"User {id.Identity!.Name!}");
-            using (await Mutex.LockAsync())
+            using (await Alock.LockAsync())
             {
                 AccessDict[file] = id.Identity!.Name!;
                 await Serialization.Serialize.JsonAsync(AccessDict, Directories.InData("AppDataAccess"), Filename);
