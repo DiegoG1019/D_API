@@ -44,7 +44,17 @@ public static class Helper
 
     public static Task<string> GetHash(string text, string key) => Task.Run(() =>
     {
-        public static async Task CheckAuthValidity(this ClaimsPrincipal user)
+        var encoding = Encoding.UTF8;
+
+        byte[] textBytes = encoding.GetBytes(text);
+        byte[] keyBytes = encoding.GetBytes(key);
+
+        byte[] hashBytes;
+        using (var hash = new HMACSHA512(keyBytes))
+            hashBytes = hash.ComputeHash(textBytes);
+
+        return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+    });
 
     public static Task<byte[]> EncryptStringToBytesAES(string plainText, byte[] key, byte[] iv) => Task.Run(() =>
     {
