@@ -20,7 +20,7 @@ namespace D_API.Test
         public static void StoreResult<T>(this T result, Func<T, string> data, [CallerMemberName] string caller = null)
             => StoreResult(data(result), caller);
 
-        public static void StoreResult(this object result, [CallerMemberName] string caller = null)
+        public static void StoreResult(object result, [CallerMemberName] string caller = null)
         {
             CheckCaller(caller);
             if (!ResultsDictionary.ContainsKey(caller))
