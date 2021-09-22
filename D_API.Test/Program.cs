@@ -17,83 +17,90 @@ namespace D_API.Test
         public static async Task Main()
         {
             Settings<TestSettings>.Initialize(".config", "settings");
-            Write("Insert APIKey\n> ");
-            Client = new(Settings<TestSettings>.Current.BaseAddress ?? "https://localhost:44379/", ReadLine());
+            Client = new(Settings<TestSettings>.Current.ClientCredentials ?? throw new NullReferenceException("Client Credentials cannot be null"),
+                Settings<TestSettings>.Current.BaseAddress ?? "https://localhost:44379/");
 
             Log.Logger = new LoggerConfiguration().MinimumLevel.Verbose().WriteTo.Console().CreateLogger();
-
-            await TestQueue();
-            await TestProbe();
+            WriteLine("Press enter to start the tests");
+            ReadLine();
             await TestAppData();
+            //await TestQueue();
+            await TestProbe();
+            WriteLine("Finished tests, press any key to continue...");
+            ReadKey();
         }
 
         public static async Task TestQueue()
         {
+            StoreResult("Entering TestQueue");
             Task[] tasks = new Task[30];
             for (int i = 0; i < 30; i++)
                 tasks[i] = Client.Probe();
             await Task.Delay(2000);
             await Task.WhenAll(tasks);
-            WriteLine("TestQueue succesful");
+            StoreResult("TestQueue succesful");
+            PrintResults();
         }
 
         public static async Task TestAppData()
         {
+            StoreResult("Entering TestAppData");
             await Task.Run(async () =>
             {
                 try
                 {
-                    Helper.StoreResult($"Get Test 1: {await Client.GetAppData<string>("Test")}");
+                    StoreResult($"Get Test 1: {await Client.GetAppData<string>("Test")}");
                 }
                 catch (D_APIException exc)
                 {
-                    Helper.StoreResult($"Get Test 1 failed: {exc.Message}");
+                    StoreResult($"Get Test 1 failed: {exc.Message}");
                 }
 
                 try
                 {
                     await Client.PostAppData("Test", "papppasd", true);
-                    Helper.StoreResult($"Post Test 1 (ow:true): PASSED");
+                    StoreResult($"Post Test 1 (ow:true): PASSED");
                 }
                 catch (D_APIException exc)
                 {
-                    Helper.StoreResult($"Post Test 1 failed: {exc.Message}");
+                    StoreResult($"Post Test 1 failed: {exc.Message}");
                 }
 
                 try
                 {
-                    Helper.StoreResult($"Get Test 2: {await Client.GetAppData<string>("Test")}");
+                    StoreResult($"Get Test 2: {await Client.GetAppData<string>("Test")}");
                 }
                 catch (D_APIException exc)
                 {
-                    Helper.StoreResult($"Get Test 2 failed: {exc.Message}");
+                    StoreResult($"Get Test 2 failed: {exc.Message}");
                 }
 
                 try
                 {
                     await Client.PostAppData("Test", "papppasdadv", false);
-                    Helper.StoreResult($"Post Test 2 (ow:true): FAILED");
+                    StoreResult($"Post Test 2 (ow:true): FAILED");
                 }
                 catch (Exception exc)
                 {
-                    Helper.StoreResult($"Get Test 2: {exc.Message}");
+                    StoreResult($"Get Test 2: {exc.Message}");
                 }
 
                 PrintResults();
-            }).AwaitWithTimeout(10000, null, () => throw new Exception($"Probing took too long to complete"));
+            });//.AwaitWithTimeout(10000, null, () => throw new Exception($"Probing took too long to complete"));
         }
 
         public static async Task TestProbe()
         {
+            StoreResult("Entering TestProbe");
             await Task.Run(async () =>
             {
-                Helper.StoreResult($"Probe: {await Client.Probe()}");
-                Helper.StoreResult($"ProbeAuth: {await Client.ProbeAuth()}");
-                Helper.StoreResult($"ProbeAuthMod: {await Client.ProbeAuthMod()}");
-                Helper.StoreResult($"ProbeAuthAdmin: {await Client.ProbeAuthAdmin()}");
-                Helper.StoreResult($"ProbeAuthRoot: {await Client.ProbeAuthRoot()}");
+                StoreResult($"Probe: {await Client.Probe()}");
+                StoreResult($"ProbeAuth: {await Client.ProbeAuth()}");
+                StoreResult($"ProbeAuthMod: {await Client.ProbeAuthMod()}");
+                StoreResult($"ProbeAuthAdmin: {await Client.ProbeAuthAdmin()}");
+                StoreResult($"ProbeAuthRoot: {await Client.ProbeAuthRoot()}");
                 PrintResults();
-            }).AwaitWithTimeout(5000, null, () => throw new Exception($"Probing took too long to complete"));
+            });//.AwaitWithTimeout(5000, null, () => throw new Exception($"Probing took too long to complete"));
         }
     }
 }
