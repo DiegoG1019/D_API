@@ -4,12 +4,11 @@ using System.Text;
 
 namespace D_API.Lib.Types
 {
-    public enum Role
+    public enum Endpoint
     {
-        Unauthenticated = -1,
-        None = 0,
-        Moderator = 1,
-        Administrator = 2,
-        Root = 3
+        Probe,
+        Whitelist,
+        Auth,
+        General
     }
 }
