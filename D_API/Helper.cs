@@ -30,6 +30,19 @@ public static class Helper
         }
         return Task.CompletedTask;
     }
+
+    public static Task<string> GenerateSecret() => Task.Run(static () =>
+    {
+        var chars = new ReadOnlySpan<char>(new char[] { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'ñ', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'Ñ', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '{', '}', '[', ']', '(', ')', ',', '.', '!', '@', '#', '$', '%', '^', '&', '*', '_', '-', '=', '+', '*', '1', '2', '3', '4', '5', '6', '7', '8', '9', '~', '"', '\'', ':', ';', '>', '<', '/', '?', '¡', '¿', '|', '`' });
+
+        var rand = new Random(DateTime.Now.Millisecond);
+        var sb = new StringBuilder(64);
+        for (int i = 0; i < 64; i++)
+            sb.Append(chars[rand.Next(0, chars.Length)]);
+        return sb.ToString();
+    });
+
+    public static Task<string> GetHash(string text, string key) => Task.Run(() =>
     {
         public static async Task CheckAuthValidity(this ClaimsPrincipal user)
 
