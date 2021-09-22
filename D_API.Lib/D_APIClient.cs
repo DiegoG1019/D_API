@@ -6,82 +6,209 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace D_API.Lib
 {
     public class D_APIClient
     {
+        #region fields
+
         protected readonly AsyncLock Lock = new AsyncLock();
 
         protected readonly HttpClient Http;
         protected readonly D_APIClientConfig Config;
         protected readonly IRequestQueue RequestQueue;
 
-        public D_APIClient(Uri address, string key, D_APIClientConfig? config = null)
+        protected readonly Credentials Credentials;
+
+        #endregion
+
+        #region constructors
+
+        private D_APIClient(Credentials creds, Uri address)
         {
             Http = new HttpClient() { BaseAddress = address };
-            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", key);
-            Config = config ?? new D_APIClientConfig();
+            Credentials = creds;
+        }
 
+        public D_APIClient(Credentials creds, Uri address, D_APIClientConfig? config = null) 
+            : this(creds, address)
+        {
+            Config = config ?? new D_APIClientConfig();
             RequestQueue = Config.AutoQueue ? (IRequestQueue)new D_APIRequestQueue() : new D_APINoRequestQueue();
         }
-        public D_APIClient(string address, string key) : this(new Uri(address), key) { }
 
-        public D_APIClient(HttpClient client, Uri? address = null, string? key = null, D_APIClientConfig? config = null)
+        public D_APIClient(Credentials creds, string address, D_APIClientConfig? config = null) 
+            : this(creds, new Uri(address), config)
+        { }
+
+        public D_APIClient(Credentials creds, Uri address, IRequestQueue requestQueue, D_APIClientConfig? config = null) 
+            : this(creds, address, config)
+            => RequestQueue = requestQueue;
+
+        public D_APIClient(Credentials creds, string address, IRequestQueue requestQueue, D_APIClientConfig? config = null) 
+            : this(creds, new Uri(address), requestQueue, config) 
+        { }
+
+        #endregion
+
+        #region methods
+
+        #region public
+
+        public Task<bool> ProbeAuthRoot() => Probe_("probeauthroot", true);
+        public Task<bool> ProbeAuthAdmin() => Probe_("probeauthadmin", true);
+        public Task<bool> ProbeAuthMod() => Probe_("probeauthmod", true);
+        public Task<bool> ProbeAuth() => Probe_("probeauth", true);
+        public Task<bool> Probe() => Probe_("probe", false);
+
+        public Task<T> GetAppData<T>(string appname) => RequestQueue.NewRequest(async () =>
         {
-            Http = client;
-            if (address != null)
-                Http.BaseAddress = address;
-            if (key != null)
-                Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", key);
-            Config = config ?? new D_APIClientConfig();
+            await RenewRequestToken();
+            var r = await CheckResponse(await Http.GetAsync($"api/v1/appdatahost/config/{appname}"));
+            if (r.StatusCode is HttpStatusCode.OK)
+                return (await r.Content.ReadFromJsonAsync<T>())!;
+            if (r.StatusCode is HttpStatusCode.Forbidden)
+                throw new D_APIUnauthorizedDataAccessException($"This client is not logged in as the owner of {appname}");
+            if (r.StatusCode is HttpStatusCode.NotFound)
+                throw new D_APINoDataException($"There is no data under {appname}");
+            throw new D_APIException("Unknown");
+        }, Endpoint.General);
 
-            RequestQueue = Config.AutoQueue ? (IRequestQueue)new D_APIRequestQueue() : new D_APINoRequestQueue();
-        }
-        public D_APIClient(HttpClient client, string? address = null, string? key = null) : this(client, address != null ? new Uri(address) : null, key) { }
+        public Task PostAppData<T>(string appname, T data, bool overwrite = false) 
+            => RequestQueue.NewRequest(async () => 
+            {
+                await RenewRequestToken();
+                await CheckResponse(await Http.PostAsJsonAsync($"api/v1/appdatahost/config/{appname}/{overwrite}", data));
+            }, Endpoint.General);
 
-        private Role? RoleField;
-        public Task<Role> GetRole() => RequestQueue.NewRequest(async () =>
+        private string? RoleField;
+        public Task<string> GetRole() => RequestQueue.NewRequest(async () =>
         {
+            await RenewRequestToken();
             using (await Lock.LockAsync())
             {
                 if (RoleField is null)
-                    RoleField = await Http.GetFromJsonAsync<Role>("api/test/proberole");
-                return (Role)RoleField;
+                    RoleField = await HttpContentJsonExtensions.ReadFromJsonAsync<string>((await CheckResponse(await Http.GetAsync("api/test/proberole"))).Content);
+                return RoleField!;
             }
-        });
+        }, Endpoint.Probe);
 
-        public Task<bool> ProbeAuthRoot() => Probe_("probeauthroot");
-        public Task<bool> ProbeAuthAdmin() => Probe_("probeauthadmin");
-        public Task<bool> ProbeAuthMod() => Probe_("probeauthmod");
-        public Task<bool> ProbeAuth() => Probe_("probeauth");
-        public Task<bool> Probe() => Probe_("probe");
-        private Task<bool> Probe_(string endpoint) => RequestQueue.NewRequest(async () =>
+        #endregion
+
+        #region private 
+
+        private bool sessionJwtInUse;
+        private string? RequestJWT;
+        private string? SessionJWT;
+        private async Task SetRequestJWT(string? value)
+        {
+            RequestJWT = value;
+            await UseRequestJWT();
+        }
+
+        private async Task SetSessionJWT(string? value)
+        {
+            SessionJWT = value;
+            await UseSessionJWT();
+        }
+
+        private async Task UseRequestJWT()
+        {
+            using (await Lock.LockAsync())
+            {
+                Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", RequestJWT);
+                sessionJwtInUse = false;
+            }
+        }
+
+        private async Task UseSessionJWT()
+        {
+            using (await Lock.LockAsync())
+            {
+                Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", SessionJWT);
+                sessionJwtInUse = true;
+            }
+        }
+
+        private Task<bool> Probe_(string endpoint, bool renew) => RequestQueue.NewRequest(async () =>
         {
             try
             {
-                return (await Http.GetAsync($"api/test/{endpoint}")).IsSuccessStatusCode;
+                if (renew)
+                    await RenewRequestToken();
+                return (await CheckResponse((await Http.GetAsync($"api/test/{endpoint}")))).IsSuccessStatusCode;
             }
             catch (TimeoutException)
             {
                 return false;
             }
-        });
+        }, Endpoint.Probe);
 
-        public Task<T> GetAppData<T>(string appname) => RequestQueue.NewRequest(async () =>
+        private async Task<string> GetSessionToken()
         {
-            var r = await Http.GetAsync($"api/v1/appdatahost/config/{appname}");
-            if (r.StatusCode is HttpStatusCode.OK)
-                return (await r.Content.ReadFromJsonAsync<T>())!;
-            if (r.StatusCode is HttpStatusCode.Forbidden)
-                throw new D_APIException($"This client is not logged in as the owner of {appname}");
-            if (r.StatusCode is HttpStatusCode.NotFound)
-                throw new D_APIException($"There is no data under {appname}");
-            throw new D_APIException("Unknown");
-        });
+            var r = await CheckResponse(await Http.SendAsync(new HttpRequestMessage()
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(Http.BaseAddress + "api/v1/auth/newsession"),
+                Content = new StringContent(Credentials.ToJson(), Encoding.UTF8, "application/json")
+            }));
 
-        public Task PostAppData<T>(string appname, T data, bool overwrite = false) 
-            => RequestQueue.NewRequest(() => Http.PostAsJsonAsync($"api/v1/appdatahost/config/{appname}/{overwrite}", data));
+            if (r.StatusCode is HttpStatusCode.OK)
+                return await r.Content.ReadAsStringAsync();
+
+            if (r.StatusCode is HttpStatusCode.Unauthorized)
+                throw new D_APIUnauthorizedLoginException($"Server Responded with {r.StatusCode}: {await r.Content.ReadAsStringAsync()}");
+
+            throw new D_APIException($"Server responded with {r.StatusCode}: {await r.Content.ReadAsStringAsync()}");
+        }
+
+        private async Task RenewRequestToken()
+        {
+            if ((await Http.GetAsync("api/v1/auth/status")).StatusCode is HttpStatusCode.OK)
+                return;
+
+            await UseSessionJWT();
+
+            while (true)
+            {
+                var resp = await CheckResponse(await Http.GetAsync("api/v1/auth/renew"));
+#if DEBUG
+                var response = await resp.Content.ReadAsStringAsync();
+#endif
+                if (resp.StatusCode is HttpStatusCode.OK)
+                {
+                    await SetRequestJWT(await HttpContentJsonExtensions.ReadFromJsonAsync<string>(resp.Content));
+                    await UseRequestJWT();
+                    break;
+                }
+                else
+                    await SetSessionJWT(await GetSessionToken());
+            }
+
+            await UseRequestJWT();
+        }
+
+        #endregion
+
+        #endregion
+
+        #region static methods
+
+        #region protected
+
+        protected static async Task<HttpResponseMessage> CheckResponse(HttpResponseMessage response)
+        {
+            var code = response.StatusCode;
+            if (code is HttpStatusCode.TooManyRequests)
+                throw new D_APITooManyRequestsException($"{response.ReasonPhrase} | {await response.Content.ReadAsStringAsync()}");
+            return response;
+        }
+
+        #endregion
+
+        #endregion
     }
 }
