@@ -52,7 +52,7 @@ namespace D_API.Types
         public async Task NewFile(ClaimsPrincipal id, string file)
         {
             await id.CheckAuthValidity();
-            if (AccessDict.TryGetValue(file, out var result))
+            if (AccessDict.TryGetValue(file, out string? result))
                 if (id.Identity!.Name! == result)
                     return;
                 else if (id.IsInRole("root"))
