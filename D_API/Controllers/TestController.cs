@@ -21,10 +21,13 @@ namespace D_API.Controllers
         public IActionResult ProbeAuth() => Ok();
 
         [Authorize(Roles = Roles.Moderator)]
+        [Authorize(Roles = Roles.Administrator)]
+        [Authorize(Roles = Roles.Root)]
         [HttpGet("probeAuthMod")]
         public IActionResult ProbeAuthMod() => Ok();
 
         [Authorize(Roles = Roles.Administrator)]
+        [Authorize(Roles = Roles.Root)]
         [HttpGet("probeAuthAdmin")]
         public IActionResult ProbeAuthAdmin() => Ok();
 
