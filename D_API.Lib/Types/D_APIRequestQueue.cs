@@ -1,4 +1,5 @@
-﻿using Nito.AsyncEx;
+﻿using D_API.Lib.Exceptions;
+using Nito.AsyncEx;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -8,175 +9,142 @@ using System.Threading.Tasks;
 
 namespace D_API.Lib.Types
 {
-#warning There's currently no way to know how many requests we still have available
     public class D_APIRequestQueue : IRequestQueue
     {
-        private readonly Task Running;
-
-        private readonly Queue<DateTime> ImmediateRequests = new Queue<DateTime>(); //These are the seconds based ones
-
-        private readonly IReadOnlyList<(Queue<DateTime> Dates, int Max)> Requests = new List<(Queue<DateTime>, int)>
+        private class EndpointTimeout
         {
-            (new Queue<DateTime>(), 80), // 1 : Minutes
-            (new Queue<DateTime>(), 25_000), // 2 : 12h
-            (new Queue<DateTime>(), 100_000)  // 3 : 7 days
-        };
+            public readonly SemaphoreSlim? Semaphore;
+            public readonly TimeSpan Timeout;
 
-        private readonly Queue<Func<Task>> QueuedTasks = new Queue<Func<Task>>();
-
-        private readonly AsyncLock Lock = new AsyncLock();
-        protected async Task EnqueueTask(Func<Task> func)
-        {
-            using (await Lock.LockAsync())
-                QueuedTasks.Enqueue(func);
+            public EndpointTimeout(SemaphoreSlim? semaphore, TimeSpan? timeout = null)
+            {
+                Semaphore = semaphore;
+                Timeout = timeout ?? TimeSpan.Zero;
+            }
         }
+
+        private class Request
+        {
+            public readonly Endpoint Endpoint;
+            public readonly Func<Task> Task;
+            public Request(Endpoint endpoint, Func<Task> task)
+            {
+                Endpoint = endpoint;
+                Task = task;
+            }
+        }
+
+        private readonly SemaphoreSlim TooManyRequestsSemaphore = new SemaphoreSlim(1, 1);
+        private readonly Dictionary<Endpoint, EndpointTimeout> EndpointTimeouts;
+        private readonly Queue<Request> QueuedTasks = new Queue<Request>();
 
         protected readonly CancellationTokenSource TokenSource = new CancellationTokenSource();
 
         public D_APIRequestQueue()
         {
-            Running = new Task(async () => await Run(TokenSource.Token), TaskCreationOptions.LongRunning);
-            Running.Start();
+            EndpointTimeouts = new Dictionary<Endpoint, EndpointTimeout>()
+            {
+                { Endpoint.General, new EndpointTimeout(new SemaphoreSlim(5, 5), TimeSpan.FromSeconds(1.1)) },
+                { Endpoint.Auth, new EndpointTimeout(new SemaphoreSlim(1, 1), TimeSpan.FromSeconds(1.1)) },
+                { Endpoint.Probe, new EndpointTimeout(new SemaphoreSlim(2, 2), TimeSpan.FromSeconds(1.1)) },
+                { Endpoint.Whitelist, new EndpointTimeout(null) }
+            };
+
+            Run(TokenSource.Token);
         }
 
-        protected virtual async Task Run(CancellationToken cancellationToken)
+        protected virtual async void Run(CancellationToken cancellationToken)
         {
-            while(!cancellationToken.IsCancellationRequested)
+            while (!cancellationToken.IsCancellationRequested)
             {
-            WhileContinue:;
-                await Task.Delay(500);
-
-                //   Queue Clearing
-                // ------------------
-
-                while (ImmediateRequests.Count > 0)
-                    if (ImmediateRequests.Peek() <= DateTime.Now)
-                        ImmediateRequests.Dequeue();
-                    else
-                        break;
-                foreach (var (Dates, _) in Requests)
-                    while (Dates.Count > 0)
-                        if (Dates.Peek() <= DateTime.Now)
-                            Dates.Dequeue();
-                        else
-                            break;
-
-                //   Available requests
-                // ----------------------
-
-                using (await Lock.LockAsync())
-                    if (QueuedTasks.Count is 0)
-                        continue;
-
-                int x = 5 - ImmediateRequests.Count;
-                if (x <= 0)
-                    goto WhileContinue;
-                foreach (var (Dates, Max) in Requests)
+                while(QueuedTasks.Count > 0)
                 {
-                    var v = Max - Dates.Count;
-                    if (v <= 0)
-                        goto WhileContinue;
-                    if (v < x)
-                        x = v;
-                }
+                    Request request;
+                    using (await Lock.LockAsync())
+                        if (!QueuedTasks.TryDequeue(out request))
+                            continue;
 
-                //   Execute Requests
-                // --------------------
+                    await TooManyRequestsSemaphore.WaitAsync();
+                    TooManyRequestsSemaphore.Release();
 
-                var arr = new Task[x];
-                using(await Lock.LockAsync())
-                    for (int i = 0; i < x && QueuedTasks.Count > 0; i++)
-                    {
-                        arr[i] = Task.Run(async () =>
+                    var et = EndpointTimeouts[request.Endpoint];
+                    bool sem = et.Semaphore != null;
+                    if (sem)
+                        await et.Semaphore!.WaitAsync();
+
+                    for (; ; )
+                        try
                         {
-                            try
-                            {
-                                await QueuedTasks.Dequeue()();
-                            }
-                            catch(Exception exc)
-                            {
-                                Log.Error($"A Queued Request failed: {exc.GetType().Name} {exc.Message}");
-                                return;
-                            }
-                        });
-                        var date = DateTime.Now;
-                        ImmediateRequests.Enqueue(date + TimeSpan.FromSeconds(1));
-                        Requests[0].Dates.Enqueue(date + TimeSpan.FromMinutes(1));
-                        Requests[1].Dates.Enqueue(date + TimeSpan.FromHours(12));
-                        Requests[2].Dates.Enqueue(date + TimeSpan.FromDays(7));
-                    }
-                await Task.WhenAll(arr);
+                            await request.Task();
+
+                            break;
+                        }
+                        catch (D_APITooManyRequestsException)
+                        {
+                            await TooManyRequestsSemaphore.WaitAsync();
+                            await Task.Delay(2_000);
+                            TooManyRequestsSemaphore.Release();
+
+                            continue;
+                        }
+
+                    if (sem && et.Timeout > TimeSpan.Zero)
+                        FireRequest(et.Semaphore!, et.Timeout);
+                }
+                await Task.Delay(500);
             }
         }
 
-        public Task<T> NewRequest<T>(Func<Task<T>> func)
-            => Task.Run(async () =>
-            {
-                T result = default;
-                bool done = false;
-                await EnqueueTask(async () =>
-                {
-                    await func();
-                    done = true;
-                });
-                while (true)
-                    if (!done)
-                        await Task.Delay(50);
-                    else
-                        break;
-                return result!;
-            });
+        protected static async void FireRequest(SemaphoreSlim semaphore, TimeSpan ts)
+        {
+            await Task.Delay(ts);
+            semaphore.Release();
+        }
 
-        public Task<T> NewRequest<T>(Func<T> func)
-            => Task.Run(async () =>
-            {
-                T result = default;
-                bool done = false;
-                await EnqueueTask(() =>
+        private readonly AsyncLock Lock = new AsyncLock();
+        protected async Task<object?> EnqueueTask(Func<Task<object?>> request, Endpoint endpoint)
+        {
+            var semaphore = new SemaphoreSlim(1, 1);
+            object? result = null;
+            semaphore.Wait();
+            using (await Lock.LockAsync())
+                QueuedTasks.Enqueue(new Request(endpoint, async () =>
                 {
-                    func();
-                    done = true;
-                    return Task.CompletedTask;
-                });
-                while (true)
-                    if (!done)
-                        await Task.Delay(50);
-                    else
-                        break;
-                return result!;
-            });
+                    try
+                    {
+                        result = await request();
+                        semaphore.Release();
+                    }
+                    catch (D_APITooManyRequestsException)
+                    {
+                        throw;
+                    }
+                    catch (D_APIRequestJWTExpiredException)
+                    {
+                        throw;
+                    }
+                    catch(Exception e)
+                    {
+                        result = e;
+                        semaphore.Release();
+                    }
+                }));
+            await semaphore.WaitAsync();
+            return result is Exception exc ? throw exc : result;
+        }
 
-        public Task NewRequest(Func<Task> func)
-            => Task.Run(async () =>
-            {
-                bool done = false;
-                await EnqueueTask(async () =>
-                {
-                    await func();
-                    done = true;
-                });
-                while (true)
-                    if (!done)
-                        await Task.Delay(50);
-                    else
-                        break;
-            });
+        public async Task<T> NewRequest<T>(Func<Task<T>> func, Endpoint endpoint)
+            => (T)await EnqueueTask(async () => await func(), endpoint);
 
-        public Task NewRequest(Action func)
-            => Task.Run(async () =>
-            {
-                bool done = false;
-                await EnqueueTask(() =>
-                {
-                    func();
-                    done = true;
-                    return Task.CompletedTask;
-                });
-                while (true)
-                    if (!done)
-                        await Task.Delay(50);
-                    else
-                        break;
-            });
+        public async Task<T> NewRequest<T>(Func<T> func, Endpoint endpoint)
+            => (T)await EnqueueTask(async () => func(), endpoint);
+
+        public async Task NewRequest(Func<Task> func, Endpoint endpoint)
+            => await EnqueueTask(async () => { await func(); return null; }, endpoint);
+
+        public async Task NewRequest(Action func, Endpoint endpoint)
+            => await EnqueueTask(() => { func(); return Task.FromResult<object?>(null); }, endpoint);
+
+        ~D_APIRequestQueue() => TokenSource.Cancel();
     }
 }
