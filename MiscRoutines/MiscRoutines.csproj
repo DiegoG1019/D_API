@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\D_API.Lib\D_API.Lib.csproj" />
+    <ProjectReference Include="..\D_API.Test\D_API.Test.csproj" />
+    <ProjectReference Include="..\D_API\D_API.csproj" />
+  </ItemGroup>
+
+</Project>

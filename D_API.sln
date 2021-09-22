@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31515.178
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31710.8
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "D_API", "D_API\D_API.csproj", "{7DE8E72A-2E1C-4DB7-8EF9-6EC74C8160BE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "D_API.Lib", "D_API.Lib\D_API.Lib.csproj", "{E17AF2E5-D251-40AA-8555-783FA3E8F4B1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "D_API.Lib", "D_API.Lib\D_API.Lib.csproj", "{E17AF2E5-D251-40AA-8555-783FA3E8F4B1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "D_API.Test", "D_API.Test\D_API.Test.csproj", "{F1B86A92-46C6-4FA4-A4C8-F6A1052B6AF0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiscRoutines", "MiscRoutines\MiscRoutines.csproj", "{08048F38-D621-480E-AA0F-73FE3543C18E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{F1B86A92-46C6-4FA4-A4C8-F6A1052B6AF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F1B86A92-46C6-4FA4-A4C8-F6A1052B6AF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F1B86A92-46C6-4FA4-A4C8-F6A1052B6AF0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08048F38-D621-480E-AA0F-73FE3543C18E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08048F38-D621-480E-AA0F-73FE3543C18E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08048F38-D621-480E-AA0F-73FE3543C18E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08048F38-D621-480E-AA0F-73FE3543C18E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
