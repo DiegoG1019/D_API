@@ -1,69 +1,133 @@
-﻿using D_API.Authentication;
+﻿using D_API.Dependencies.Interfaces;
+using D_API.Exceptions;
+using D_API.Types.DataKeeper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using DiegoG.Utilities.IO;
-using System.IO;
-using D_API.Interfaces;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using Telegram.Bot.Requests.Abstractions;
 
 namespace D_API.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = Roles.AppDataHost)]
     [ApiController]
     [Route("api/v1/appdatahost")]
-    public class AppDataHost : ControllerBase
+    public class AppDataHost : Controller
     {
-        private readonly IAppDataAccessKeeper Keeper;
+        private readonly IAppDataKeeper Data;
+        public AppDataHost(IAppDataKeeper keeper) => Data = keeper;
 
-        public AppDataHost(IAppDataAccessKeeper keeper)
+        private static string? VerifyDataKey(string datakey) 
+            => datakey.Length is 0 or > 100 ? "The requested Datakey must be between 0 and 100 characters in length" : null;
+
+        private static string? VerifyUploadRequest(UploadRequest request)
         {
-            Keeper = keeper;
+            if (request.Data is null)
+                return "Data cannot be null";
+            return null;
         }
 
-        static AppDataHost()
+        [HttpGet("download/{datakey}")]
+        public async Task<IActionResult> Download(string datakey)
         {
-            Directory.CreateDirectory(Directories.AppDataHost);
+            if (!User.GetUserKey(out var key, out string? error))
+                return Forbid(error);
+            if ((error = VerifyDataKey(datakey)) is not null)
+                return BadRequest(error);
+            
+            var op = await Data.Download(key, datakey);
+            return op.Result switch
+            {
+                DataOpResult.DataDoesNotExist => NotFound($"Could not find any data matching {datakey}"),
+                DataOpResult.DataInaccessible => Unauthorized($"This client does not have access to {datakey}"),
+                DataOpResult.OverTransferQuota => Forbid($"This client has exceeded their download quota by {op.SecondValue}"),
+                DataOpResult.Success => Ok(op.FirstValue),
+                _ => throw await Report.WriteControllerReport(new(
+                    DateTime.Now,
+                    new InvalidOperationException($"Expected only DataDoesNotExist, DataInaccessible, OverTransferQuota or Success, received: {op.Result}"),
+                    this,
+                    null,
+                    new KeyValuePair<string, object>[]
+                        {
+                            new("DataKey", datakey),
+                            new("OperationResults", op)
+                        }
+                    )
+                    , "AppDataHost")
+            };
         }
 
-        [HttpGet("config/{appname}")]
-        public async Task<IActionResult> GetConfig(string appname)
+        [HttpPost("upload/{datakey}")]
+        public async Task<IActionResult> Upload(string datakey, [FromBody]UploadRequest upRequest)
         {
-            var s = Directories.InAppDataHost(appname);
-            return System.IO.File.Exists(s) ? await Keeper.CheckAccess(User, s) ? Ok(await ReadFile(s)) : Forbid() : NotFound();
+            if (!User.GetUserKey(out var key, out string? error))
+                return Forbid(error);
+            if ((error = VerifyDataKey(datakey) ?? VerifyUploadRequest(upRequest)) is not null)
+                return BadRequest(error);
+
+            var op = await Data.Upload(key, datakey, upRequest.Data!, upRequest.Overwrite);
+            return op.Result switch
+            {
+                DataOpResult.DataInaccessible => Unauthorized($"This client does have access to {datakey}, or the data does not exist"),
+                DataOpResult.OverStorageQuota => Forbid($"This client has exceeded their storage quota"),
+                DataOpResult.NoOverwrite => Forbid($"This data already exists, and overwrite parameter is not set"),
+                DataOpResult.OverTransferQuota => Forbid($"This client has exceeded their upload quota"),
+                DataOpResult.Success => Ok(),
+                _ => throw await Report.WriteControllerReport(new(
+                    DateTime.Now,
+                    new InvalidOperationException($"Expected only OverStorageQuota, NoOverwrite, OverTransferQuota or Success, received: {op.Result}"),
+                    this,
+                    null, 
+                    new KeyValuePair<string, object>[]
+                        {
+                            new("DataKey", datakey),
+                            new("UploadRequest", upRequest),
+                            new("OperationResults", op)
+                        }
+                    )
+                    , "AppDataHost")
+            };
         }
 
-        [HttpPost("config/{appname}")]
-        public Task<IActionResult> WriteConfig(string appname, [FromBody]string body) => WriteConfig(appname, body, false);
-
-        [HttpPost("config/{appname}/{ow}")]
-        public async Task<IActionResult> WriteConfig(string appname, [FromBody]string body, bool ow)
+        [HttpGet("access/{datakey}")]
+        public async Task<IActionResult> CheckAccess(string datakey)
         {
-            var file = Directories.InAppDataHost(appname);
+            if (!User.GetUserKey(out var key, out string? error))
+                return Forbid(error);
+            if ((error = VerifyDataKey(datakey)) is not null)
+                return BadRequest(error);
 
-            if (!await Keeper.CheckAccess(User, file))
-                return Forbid();
-
-            await Keeper.NewFile(User, file);
-
-            if (!ow && System.IO.File.Exists(file))
-                return Unauthorized("File already exists, cannot assume overwrite. If you wish to overwrite it, please use \"config/{appname}/true\"");
-            await WriteFile(file, body);
-            return Ok();
+            return Ok(await Data.CheckExists(key, datakey));
         }
 
-        private static async Task<string> ReadFile(string file)
+        [HttpGet("transferquota")]
+        public async Task<IActionResult> GetTransferQuota()
         {
-            using StreamReader InFile = new(new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read));
-            return await InFile.ReadToEndAsync();
+            if (!User.GetUserKey(out var key, out string? error))
+                return Forbid(error);
+            return Ok(await Data.GetTransferQuota(key));
         }
 
-        private static async Task WriteFile(string file, string data)
+        [HttpGet("transferusage")]
+        public async Task<IActionResult> GetTransferUsage()
         {
-            using StreamWriter OutFile = new(new FileStream(file, FileMode.Create, FileAccess.Write, FileShare.Read));
-            await OutFile.WriteLineAsync(data);
+            if (!User.GetUserKey(out var key, out string? error))
+                return Forbid(error);
+            return Ok(await Data.GetTransferUsage(key));
+        }
+
+        [HttpGet("storagequota")]
+        public async Task<IActionResult> GetStorageQuota()
+        {
+            if (!User.GetUserKey(out var key, out string? error))
+                return Forbid(error);
+            return Ok(await Data.GetStorageQuota(key));
+        }
+
+        [HttpGet("storageusage")]
+        public async Task<IActionResult> GetStorageUsage()
+        {
+            if (!User.GetUserKey(out var key, out string? error))
+                return Forbid(error);
+            return Ok(await Data.GetStorageUsage(key));
         }
     }
 }
