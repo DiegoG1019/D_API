@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace D_API.Lib
@@ -68,8 +69,25 @@ namespace D_API.Lib
         {
             await RenewRequestToken();
             var r = await CheckResponse(await Http.GetAsync($"api/v1/appdatahost/config/{appname}"));
+
+            
+            
             if (r.StatusCode is HttpStatusCode.OK)
-                return (await r.Content.ReadFromJsonAsync<T>())!;
+            {
+                string jsonstr = await r.Content.ReadAsStringAsync();
+
+                if (jsonstr is T resultstring)
+                    return resultstring;
+
+                try
+                {
+                    return JsonSerializer.Deserialize<T>(jsonstr)!;
+                }
+                catch (JsonException e)
+                {
+                    throw new D_APIInvalidDataException("The received data was invalid", e);
+                }
+            }
             if (r.StatusCode is HttpStatusCode.Forbidden)
                 throw new D_APIUnauthorizedDataAccessException($"This client is not logged in as the owner of {appname}");
             if (r.StatusCode is HttpStatusCode.NotFound)
@@ -180,12 +198,17 @@ namespace D_API.Lib
 #endif
                 if (resp.StatusCode is HttpStatusCode.OK)
                 {
-                    await SetRequestJWT(await HttpContentJsonExtensions.ReadFromJsonAsync<string>(resp.Content));
+                    await SetRequestJWT(await resp.Content.ReadAsStringAsync());
                     await UseRequestJWT();
                     break;
                 }
                 else
+                {
+                    string reason = await resp.Content.ReadAsStringAsync();
+                    if (reason != null && reason != "" && !reason.StartsWith('{'))
+                        throw new D_APIUnauthorizedLoginException(reason);
                     await SetSessionJWT(await GetSessionToken());
+                } 
             }
 
             await UseRequestJWT();
