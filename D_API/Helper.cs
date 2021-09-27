@@ -21,15 +21,22 @@ public static class Roles
 
 public static class Helper
 {
-    public static Task CheckAuthValidity(this ClaimsPrincipal user)
+    public static bool GetUserKey(this ClaimsPrincipal user, out Guid key, [NotNullWhen(false)]out string? error)
     {
-        if (user.Identity?.Name is null)
+        Claim? c;
+        if ((c = user.Claims.FirstOrDefault(x => x.Type is ClaimTypes.NameIdentifier)) is null)
         {
-            string d = $"An authorized user cannot have a null Identity or Name. Claims: \n*> {string.Join("\n*>", user.Claims.Select(x => $"Type: {x.Type}, Value: {x.Value}, Issuer: {x.Issuer}"))}";
-            Log.Error(d);
-            throw new InvalidOperationException(d);
+            error = "The claims of this client are invalid";
+            key = Guid.Empty;
+            return false;
         }
-        return Task.CompletedTask;
+        if (!Guid.TryParse(c.Value, out key))
+        {
+            error = "The client's key is invalid";
+            return false;
+        }
+        error = null;
+        return true;
     }
 
     public static Task<string> GenerateSecret() => Task.Run(static () =>
