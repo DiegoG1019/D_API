@@ -2,20 +2,21 @@
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Telegram.Bot.Types;
 
 namespace D_API;
 
 public static class Roles
 {
     public const string Root = "root";
-    public const string Moderator = "mod";
-    public const string Administrator = "admin";
+    public const string AppDataHost = $"{Root},adh";
 }
 
 public static class Helper
