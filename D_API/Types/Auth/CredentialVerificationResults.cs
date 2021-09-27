@@ -1,13 +1,13 @@
-﻿using D_API.Types.Auth.Models;
+﻿using D_API.Models.Auth;
 
 namespace D_API.Types.Auth;
 
-public sealed record CredentialVerificationResults(CredentialVerificationResult Result, Client? Client) { }
+public sealed record CredentialVerificationResults(CredentialVerificationResult Result, Client? Client, string? Message = null) { }
 
 public enum CredentialVerificationResult
 {
     Forbidden,
     Revoked,
     Unauthorized,
-    Authorized,
+    Authorized
 }
