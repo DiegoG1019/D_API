@@ -1,5 +1,4 @@
 using AspNetCoreRateLimit;
-using D_API.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -8,11 +7,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using D_API.Types;
 using Microsoft.AspNetCore.HttpOverrides;
-using D_API.Interfaces;
+using D_API.DataContexts;
+using D_API.Dependencies.Interfaces;
+using D_API.Dependencies.Implementations;
 
 namespace D_API;
 
@@ -27,8 +29,6 @@ public static partial class Program
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            string key = GetKey();
-
             services.AddOptions();
             services.AddMemoryCache();
             services.Configure<ClientRateLimitOptions>(Configuration.GetSection("ClientRateLimiting"));
@@ -39,14 +39,11 @@ public static partial class Program
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
-            //services.Configure<ForwardedHeadersOptions>(options =>
-            //{
-            //    options.KnownProxies.Add(IPAddress.Parse("10.0.0.100"));
-            //}); //Not necessary as of now
+            // ---- JWT Related code
 
             var jwtIssuer = Settings<APISettings>.Current.Security.Issuer;
             var jwtAudience = Settings<APISettings>.Current.Security.Audience;
-            var jwtSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key));
+            var jwtSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(GetKey()));
 
             services.AddControllers();
             services.AddAuthentication(x =>
@@ -75,13 +72,30 @@ public static partial class Program
             });
 
             services.AddSingleton<IJwtProvider>(new JwtAuth(jwtSigningKey, jwtAudience, jwtIssuer));
-            services.AddSingleton<IAppDataAccessKeeper>(new AppDataAccessFileKeeper("main"));
-            {
-                var (hashkey, enkey, eniv) = GetMCVPData();
-                services.AddSingleton<IAuthCredentialsVerificationProvider>(new MemoryCredentialsVerificationProvider(hashkey, enkey, eniv));
-            }
+
+            // ---- JWT Unrelated Code
+
+            var dbsettings = Settings<APISettings>.Current.ClientDataDbConnectionSettings;
+            if (dbsettings.Endpoint is not SettingsTypes.DbEndpoint.NoDB)
+                services.AddDbContext<ClientDataContext>(dbsettings.Endpoint switch
+                {
+                    SettingsTypes.DbEndpoint.SQLServer => options => options.UseSqlServer(dbsettings.ConnectionString),
+                    SettingsTypes.DbEndpoint.CosmosDB => throw new NotImplementedException("CosmosDB is not yet implemented"),
+                    SettingsTypes.DbEndpoint.NoDB => throw new InvalidOperationException("NoDB is not valid at this point in the code. It should have been skipped."),
+                    _ => throw new NotSupportedException($"Database Type {dbsettings.Endpoint} is not supported")
+                });
+
+            services.AddScoped<IAppDataKeeper>(x => new DbDataKeeper((ClientDataContext)x.GetService(typeof(ClientDataContext))!));
+
+            var (hashkey, enkey, eniv) = GetMCVPData();
+            services.AddScoped<IAuthCredentialsVerifier>(x => new DbCredentialsVerifier(hashkey, (ClientDataContext)x.GetService(typeof(ClientDataContext))!));
+
             services.AddControllers();
-            services.AddSwaggerGen(c => c.SwaggerDoc("v1", new OpenApiInfo { Title = "D_API", Version = "v1" }));
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "D_API", Version = "v1" });
+                c.ResolveConflictingActions(e => throw new InvalidOperationException($"The following APIs are conflicting\n->{string.Join("\n->", e.Select(x => $"{x.HttpMethod}:{x.RelativePath}@{x.GroupName}|{x.Properties}"))}"));
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
