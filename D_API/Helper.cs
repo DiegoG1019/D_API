@@ -77,9 +77,10 @@ public static class Helper
             hashBytes = hash.ComputeHash(textBytes);
 
         return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
-    });
+    }
 
-    public static Task<byte[]> EncryptStringToBytesAES(string plainText, byte[] key, byte[] iv) => Task.Run(() =>
+    public static Task<byte[]> EncryptStringToBytesAESAsync(string plainText, byte[] key, byte[] iv) => Task.Run(() => EncryptStringToBytesAES(plainText, key, iv));
+    public static byte[] EncryptStringToBytesAES(string plainText, byte[] key, byte[] iv)
     {
         if (plainText is null or { Length: <= 0 })
             throw new ArgumentNullException(nameof(plainText));
