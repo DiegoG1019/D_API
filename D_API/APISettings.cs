@@ -1,4 +1,5 @@
-﻿using DiegoG.Utilities.Settings;
+﻿using D_API.SettingsTypes;
+using DiegoG.Utilities.Settings;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,23 +12,41 @@ namespace D_API
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         public string SettingsType => "APISettings";
-        public ulong Version => 1;
+        public ulong Version => 2;
 
-        public string? TelegramAPIKey { get; set; }
-        public List<long> AllowedUsers { get; set; } = new() { 0 };
-        public long? EventChannelId { get; set; } = 0;
+        public string? TelegramAPIKey { get; init; }
+        public List<long> AllowedUsers { get; init; } = new() { 0 };
+        public long? EventChannelId { get; init; } = 0;
         
         public string? ClientSecretHashKey { get; set; }
 
-        public string? JWTSecurityKey { get; set; }
+        public DbConnectionSettings ClientDataDbConnectionSettings { get; init; } = new();
 
-        public string? EncryptionKey { get; set; }
-        public string? EncryptionIV { get; set; }
+        public string? JWTSecurityKey { get; init; }
 
-        public Security_settings Security { get; init; } = new(); public class Security_settings
-        {
-            public string? Audience { get; set; }
-            public string? Issuer { get; set; }
-        }
+        public string? EncryptionKey { get; init; }
+        public string? EncryptionIV { get; init; }
+
+        public Security Security { get; init; } = new(); 
+    }
+}
+
+namespace D_API.SettingsTypes
+{
+    public enum DbEndpoint
+    {
+        NoDB,
+        SQLServer,
+        CosmosDB
+    }
+
+    public sealed record Security(string? Audience, string? Issuer)
+    {
+        public Security() : this (null, null) { }
+    }
+
+    public sealed record DbConnectionSettings(DbEndpoint Endpoint, string? ConnectionString)
+    {
+        public DbConnectionSettings() : this(DbEndpoint.SQLServer, null) { }
     }
 }
