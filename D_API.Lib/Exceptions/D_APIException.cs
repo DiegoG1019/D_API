@@ -27,6 +27,17 @@ namespace D_API.Lib.Exceptions
     }
 
     [Serializable]
+    public class D_APIInvalidDataException : D_APIException
+    {
+        public D_APIInvalidDataException() { }
+        public D_APIInvalidDataException(string message) : base(message) { }
+        public D_APIInvalidDataException(string message, Exception inner) : base(message, inner) { }
+        protected D_APIInvalidDataException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+    }
+
+    [Serializable]
     public class D_APIUnauthorizedLoginException : D_APIException
     {
         public D_APIUnauthorizedLoginException() { }
