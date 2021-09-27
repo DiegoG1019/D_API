@@ -39,7 +39,7 @@ public static class Helper
         return true;
     }
 
-    public static Task<string> GenerateSecret() => Task.Run(static () =>
+    public static string GenerateRandomString(int length)
     {
         var chars = new ReadOnlySpan<char>(new char[] 
         {
@@ -51,13 +51,21 @@ public static class Helper
         });
 
         var rand = new Random(DateTime.Now.Millisecond);
-        var sb = new StringBuilder(64);
-        for (int i = 0; i < 64; i++)
+        var sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++)
             sb.Append(chars[rand.Next(0, chars.Length)]);
         return sb.ToString();
-    });
+    }
 
-    public static Task<string> GetHash(string text, string key) => Task.Run(() =>
+    public static string GenerateUnhashedSecret() => GenerateRandomString(64);
+    public static Task<string> GenerateUnhashedSecretAsync() => Task.Run(GenerateUnhashedSecret);
+
+    public static string GenerateRandomSalt() => GenerateRandomString(16);
+    public static Task<string> GenerateRandomSaltAsync() => Task.Run(GenerateRandomSalt);
+
+    public static Task<string> GetHashAsync(string text, string key) => Task.Run(() => GetHash(text, key));
+
+    public static string GetHash(string text, string key)
     {
         var encoding = Encoding.UTF8;
 
@@ -105,12 +113,13 @@ public static class Helper
             csEncrypt?.Dispose();
             swEncrypt?.Dispose();
         }
-    });
+    }
 
-    public static Task<string> DecryptStringFromBytesAES(byte[] cipherText, byte[] key, byte[] iv) => Task.Run(() =>
+    public static Task<string> DecryptStringFromBytesAESAsync(byte[] ciphered, byte[] key, byte[] iv) => Task.Run(() => DecryptStringFromBytesAES(ciphered, key, iv));
+    public static string DecryptStringFromBytesAES(byte[] ciphered, byte[] key, byte[] iv)
     {
-        if (cipherText is null or { Length: <= 0 })
-            throw new ArgumentNullException(nameof(cipherText));
+        if (ciphered is null or { Length: <= 0 })
+            throw new ArgumentNullException(nameof(ciphered));
         if (key is null or { Length: <= 0 })
             throw new ArgumentNullException(nameof(key));
         if (iv is null or { Length: <= 0 })
@@ -128,7 +137,7 @@ public static class Helper
             aesAlg.IV = iv;
             ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
 
-            msDecrypt = new MemoryStream(cipherText);
+            msDecrypt = new MemoryStream(ciphered);
             csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read);
             srDecrypt = new StreamReader(csDecrypt);
             return srDecrypt.ReadToEnd();
@@ -140,5 +149,7 @@ public static class Helper
             csDecrypt?.Dispose();
             srDecrypt?.Dispose();
         }
-    });
+    }
+
+    public static Task<string> GenerateSecret() => throw new NotImplementedException();
 }
