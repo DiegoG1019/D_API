@@ -17,26 +17,26 @@ namespace D_API.Test
                 throw new ArgumentNullException(nameof(caller));
         }
 
-        public static void StoreResult<T>(this T result, Func<T, string> data, [CallerMemberName] string caller = null)
+        public static void StoreResult<T>(this T result, Func<T, string> data, [CallerMemberName] string? caller = null)
             => StoreResult(data(result), caller);
 
-        public static void StoreResult(object result, [CallerMemberName] string caller = null)
+        public static void StoreResult(object result, [CallerMemberName] string? caller = null)
         {
-            CheckCaller(caller);
+            CheckCaller(caller ??= ".");
             if (!ResultsDictionary.ContainsKey(caller))
                 ResultsDictionary[caller] = new();
             ResultsDictionary[caller].Add(result);
         }
 
-        public static IEnumerable<object> GetResults([CallerMemberName] string caller = null)
+        public static IEnumerable<object> GetResults([CallerMemberName] string? caller = null)
         {
-            CheckCaller(caller);
+            CheckCaller(caller ??= ".");
             var r = ResultsDictionary[caller];
             ResultsDictionary.Remove(caller);
             return r;
         }
 
-        public static void PrintResults([CallerMemberName] string caller = null)
+        public static void PrintResults([CallerMemberName] string? caller = null)
         {
             foreach (var x in GetResults(caller))
                 Console.WriteLine(x);
