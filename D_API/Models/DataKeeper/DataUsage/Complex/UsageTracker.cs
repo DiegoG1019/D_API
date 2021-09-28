@@ -1,12 +1,14 @@
 ﻿using DiegoG.Utilities.Measures;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace D_API.Models.DataKeeper.DataUsage.Complex
 {
-    [ComplexType]
     public class UsageTracker
     {
+        [Key]
+        public Guid Key { get; set; }
         public UsageTracker(DataMeasure download, DataMeasure upload)
         {
             Upload = upload;
