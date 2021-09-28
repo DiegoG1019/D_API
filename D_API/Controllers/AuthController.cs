@@ -26,10 +26,10 @@ namespace D_API.Controllers
         const string Requester = "requester";
         const string AppendRequester = ",requester";
 
-        private readonly IAuthCredentialsVerifier Auth;
+        private readonly IAuthCredentialsProvider Auth;
         private readonly IJwtProvider Jwt;
 
-        public AuthController(IAuthCredentialsVerifier auth, IJwtProvider jwt)
+        public AuthController(IAuthCredentialsProvider auth, IJwtProvider jwt)
         {
             Auth = auth;
             Jwt = jwt;
