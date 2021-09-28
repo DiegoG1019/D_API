@@ -142,6 +142,36 @@ namespace D_API.Dependencies.Implementations
             return new(DataOpResult.Success);
         }
 
-        public Task<DataOperationResults<byte[]?, double>> DownloadReadonly(Guid userkey, Guid dataId) => throw new NotImplementedException();
+        public async Task<DataOperationResults<byte[]?, double>> DownloadReadonly(Guid userkey, Guid dataKey)
+        {
+            var usageTrackerTask = Task.Run(async () =>
+            {
+                var t = await Db.ClientDataUsages.FindAsync(userkey);
+                await t.DailyTransferUsage.ClearOutdatedTrackers();
+                return t;
+            });
+
+            var dataEntry = Db.DataEntries.FirstOrDefault(x => x.ReadOnlyKey == dataKey);
+
+            if (dataEntry is null or { IsImportant: false })
+                return new(DataOpResult.DataDoesNotExist, null, 0);
+            if (!dataEntry.Readers.Contains(userkey))
+                return new(DataOpResult.DataInaccessible, null, 0);
+
+            var usageTracker = await usageTrackerTask;
+            try
+            {
+                var (odq, _, od, _) = await usageTracker.GetIfOverTransferQuota();
+                if (odq)
+                    return new(DataOpResult.OverTransferQuota, null, od);
+                
+                usageTracker.DailyTransferUsage.Trackers.Enqueue(new(DateTime.Now, DailyTransferExpiration, dataEntry.Size, 0));
+                return new(DataOpResult.Success, dataEntry.Data, 0);
+            }
+            finally
+            {
+                await Db.SaveChangesAsync();
+            }
+        }
     }
 }
