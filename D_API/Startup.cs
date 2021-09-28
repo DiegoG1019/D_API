@@ -92,7 +92,7 @@ namespace D_API
                 services.AddScoped<IAppDataKeeper>(x => new DbDataKeeper((ClientDataContext)x.GetService(typeof(ClientDataContext))!));
 
                 var (hashkey, enkey, eniv) = GetMCVPData();
-                services.AddScoped<IAuthCredentialsVerifier>(x => new DbCredentialsVerifier(hashkey, (ClientDataContext)x.GetService(typeof(ClientDataContext))!));
+                services.AddScoped<IAuthCredentialsProvider>(x => new DbCredentialsProvider(hashkey, (ClientDataContext)x.GetService(typeof(ClientDataContext))!));
 
                 services.AddControllers();
                 services.AddSwaggerGen(c =>
