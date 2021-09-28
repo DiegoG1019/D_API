@@ -7,14 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Security.Claims;
-using DiegoG.TelegramBot;
-using DiegoG.Utilities.Settings;
 using Serilog;
 using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
-using DiegoG.Utilities.IO;
 
 namespace D_API.Controllers
 {
@@ -26,6 +22,9 @@ namespace D_API.Controllers
         const string Requester = "requester";
         const string AppendRequester = ",requester";
 
+        private static readonly object DbSeedLock = new();
+        private static bool IsDbSeeded = false;
+
         private readonly IAuthCredentialsProvider Auth;
         private readonly IJwtProvider Jwt;
 
@@ -33,6 +32,14 @@ namespace D_API.Controllers
         {
             Auth = auth;
             Jwt = jwt;
+
+            if (IsDbSeeded is false)
+                lock (DbSeedLock)
+                    if (IsDbSeeded is false)
+                    {
+                        Auth.EnsureRoot();
+                        IsDbSeeded = true;
+                    }
         }
 
         [HttpGet("status")]
