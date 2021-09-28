@@ -10,14 +10,17 @@ using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using DiegoG.Utilities.IO;
+using Microsoft.EntityFrameworkCore.Design;
+using D_API.Models.DataKeeper.DataUsage.Complex;
 
 namespace D_API.DataContexts
 {
     public class ClientDataContext : DbContext
     {
         public DbSet<Client> Clients { get; set; }
+        public DbSet<ClientHandle> ClientHandles { get; set; }
         public DbSet<ClientDataTracker> ClientDataUsages { get; set; }
-        public DbSet<DataEntry> DataEntries { get; set; }
+        public DbSet<DataEntry> ClientDataEntries { get; set; }
 
     #pragma warning disable CS8618
         public ClientDataContext(DbContextOptions<ClientDataContext> options) : base(options) { }
