@@ -10,7 +10,7 @@ using Telegram.Bot.Requests.Abstractions;
 
 namespace D_API.Controllers
 {
-    [Authorize(Roles = Roles.AppDataHost)]
+    [Authorize(Roles = AuthorizationRoles.AppDataHost)]
     [ApiController]
     [Route("api/v1/appdatahost")]
     public class AppDataHost : Controller
