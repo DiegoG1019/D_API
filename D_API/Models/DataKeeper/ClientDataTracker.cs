@@ -14,7 +14,6 @@ namespace D_API.Models.DataKeeper
 
         public UsageTracker DailyTransferQuota { get; set; } = new();
 
-        [ConcurrencyCheck]
         public DailyUsageTracker DailyTransferUsage { get; set; } = new();
 
         public DataMeasure StorageQuota { get; set; } = new();
