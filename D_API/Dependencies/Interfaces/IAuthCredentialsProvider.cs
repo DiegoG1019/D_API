@@ -16,6 +16,8 @@ namespace D_API.Dependencies.Interfaces
     {
         public Task<CredentialVerificationResults> Verify(UserValidCredentials credentials);
 
+        public bool EnsureRoot();
+
         public Task<User?> FindUser(Guid key);
     }
 }

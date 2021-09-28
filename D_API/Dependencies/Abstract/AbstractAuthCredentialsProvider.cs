@@ -20,6 +20,7 @@ namespace D_API.Dependencies.Abstract
 
         public abstract Task<User?> FindUser(Guid key);
         public abstract Task<CredentialVerificationResults> Verify(UserValidCredentials credentials);
+        public abstract bool EnsureRoot();
 
         protected virtual async Task<CredentialVerificationResults> VerifyUserCredentials
             (UserValidCredentials credentials, User? user, bool failImmediately = false)
