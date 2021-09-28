@@ -14,8 +14,8 @@ namespace D_API.Dependencies.Interfaces
 {
     public interface IAuthCredentialsProvider
     {
-        public Task<CredentialVerificationResults> Verify(ClientValidCredentials credentials);
+        public Task<CredentialVerificationResults> Verify(UserValidCredentials credentials);
 
-        public Task<Client?> FindClient(Guid key);
+        public Task<User?> FindUser(Guid key);
     }
 }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace D_API.Models.DataKeeper
 {
-    public class ClientDataTracker
+    public class UserDataTracker
     {
         [Key]
         public Guid Key { get; set; }

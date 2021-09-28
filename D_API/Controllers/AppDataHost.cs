@@ -40,8 +40,8 @@ namespace D_API.Controllers
             return op.Result switch
             {
                 DataOpResult.DataDoesNotExist => NotFound($"Could not find any data matching {datakey}"),
-                DataOpResult.DataInaccessible => Unauthorized($"This client does not have access to {datakey}"),
-                DataOpResult.OverTransferQuota => Forbid($"This client has exceeded their download quota by {op.SecondValue}"),
+                DataOpResult.DataInaccessible => Unauthorized($"This user does not have access to {datakey}"),
+                DataOpResult.OverTransferQuota => Forbid($"This user has exceeded their download quota by {op.SecondValue}"),
                 DataOpResult.Success => Ok(op.FirstValue),
                 _ => throw await Report.WriteControllerReport(new(
                     DateTime.Now,
@@ -69,10 +69,10 @@ namespace D_API.Controllers
             var op = await Data.Upload(key, datakey, upRequest.Data!, upRequest.Overwrite);
             return op.Result switch
             {
-                DataOpResult.DataInaccessible => Unauthorized($"This client does have access to {datakey}, or the data does not exist"),
-                DataOpResult.OverStorageQuota => Forbid($"This client has exceeded their storage quota"),
+                DataOpResult.DataInaccessible => Unauthorized($"This user does have access to {datakey}, or the data does not exist"),
+                DataOpResult.OverStorageQuota => Forbid($"This user has exceeded their storage quota"),
                 DataOpResult.NoOverwrite => Forbid($"This data already exists, and overwrite parameter is not set"),
-                DataOpResult.OverTransferQuota => Forbid($"This client has exceeded their upload quota"),
+                DataOpResult.OverTransferQuota => Forbid($"This user has exceeded their upload quota"),
                 DataOpResult.Success => Ok(),
                 _ => throw await Report.WriteControllerReport(new(
                     DateTime.Now,

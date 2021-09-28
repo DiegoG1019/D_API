@@ -3,32 +3,32 @@
     public enum DataOpResult
     {
         /// <summary>
-        /// The client tried to perform an operation, but had passed their transfer quota for the upload or download operation
+        /// The user tried to perform an operation, but had passed their transfer quota for the upload or download operation
         /// </summary>
         OverTransferQuota,
 
         /// <summary>
-        /// The client tried to perform an operation, but had passed their storage quota
+        /// The user tried to perform an operation, but had passed their storage quota
         /// </summary>
         OverStorageQuota,
 
         /// <summary>
-        /// The client tried to overwrite data they did not specifically request to overwrite
+        /// The user tried to overwrite data they did not specifically request to overwrite
         /// </summary>
         NoOverwrite, 
 
         /// <summary>
-        /// The client tried to access data that does not exist
+        /// The user tried to access data that does not exist
         /// </summary>
         DataDoesNotExist,
 
         /// <summary>
-        /// The client tried to access data they do not have access to
+        /// The user tried to access data they do not have access to
         /// </summary>
         DataInaccessible,
 
         /// <summary>
-        /// The client tried to perform an operation without the proper arguments
+        /// The user tried to perform an operation without the proper arguments
         /// </summary>
         BadArguments,
 

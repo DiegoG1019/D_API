@@ -50,28 +50,28 @@ namespace D_API.Controllers
             if (User.GetUserKey(out var key, out string? error) is false) 
                 return Forbid(error);
 
-            var client = await Auth.FindClient(key);
-            return client?.CurrentStatus switch
+            var user = await Auth.FindUser(key);
+            return user?.CurrentStatus switch
             {
-                null => Unauthorized("A Client by the given key could not be found"),
-                Client.Status.Revoked => Unauthorized("This client has had their credentials revoked"),
-                Client.Status.Inactive => Unauthorized("This client is currently inactive"),
-                Client.Status.Active => Ok(await Task.Run(() => Jwt.GenerateToken(client.Identifier, key, TimeSpan.FromSeconds(30), client.Roles + AppendRequester))),
+                null => base.Unauthorized("A User by the given key could not be found"),
+                Models.Auth.User.Status.Revoked => base.Unauthorized("This user has had their credentials revoked"),
+                Models.Auth.User.Status.Inactive => base.Unauthorized("This user is currently inactive"),
+                Models.Auth.User.Status.Active => base.Ok(await Task.Run<string>(() => Jwt.GenerateToken(user.Identifier, key, TimeSpan.FromSeconds(30), user.Roles + AppendRequester))),
                 _ => throw await Report.WriteControllerReport(
-                    new(DateTime.Now, new InvalidOperationException("The state of the client cannot be verified"),
+                    new(DateTime.Now, new InvalidOperationException("The state of the user cannot be verified"),
                 this, 
                 new KeyValuePair<string, object>[]
                 {
-                    new ("Client", client)
+                    new ("User", user)
                 }), "Authentication")
             };
         }
 
         [AllowAnonymous]
         [HttpPost("newsession")]
-        public async Task<IActionResult> RequestToken([FromBody]ClientRequestCredentials creds)
+        public async Task<IActionResult> RequestToken([FromBody]UserRequestCredentials creds)
         {
-            ClientValidCredentials validCredentials;
+            UserValidCredentials validCredentials;
             {
                 List<string> errors = new(4);
                 string? error;
@@ -96,33 +96,33 @@ namespace D_API.Controllers
 
             if (res is CredentialVerificationResult.Forbidden)
             {
-                Log.Information($"Client {creds.Identifier} ({creds.Key}) tried to auth, but their credentials were not recognized");
-                return Forbid("The client credentials were verified, but are not recognized");
+                Log.Information($"User {creds.Identifier} ({creds.Key}) tried to auth, but their credentials were not recognized");
+                return Forbid("The user's credentials were verified, but are not recognized");
             }
 
             if (res is CredentialVerificationResult.Revoked)
             {
-                Log.Information($"Client {r.Client!} tried to auth with revoked credentials. Not Authorized");
-                return Unauthorized("The client credentials were verified, but they have been revoked");
+                Log.Information($"User {r.User!} tried to auth with revoked credentials. Not Authorized");
+                return Unauthorized("The user's credentials were verified, but they have been revoked");
             }
 
             if (res is CredentialVerificationResult.Unauthorized)
             {
-                Log.Information($"Client {r.Client!} was not Authorized");
-                return Unauthorized("The client credentials were verified, but you have not been authorized");
+                Log.Information($"User {r.User!} was not Authorized");
+                return Unauthorized("The user's credentials were verified, but you have not been authorized");
             }
 
             if (res is CredentialVerificationResult.Authorized) 
             {
-                Log.Information($"Client {r.Client!} was succesfully authorized");
-                return Ok(Jwt.GenerateToken(r.Client!.Identifier, r.Client.Key, TimeSpan.FromHours(1), InSession));
+                Log.Information($"User {r.User!} was succesfully authorized");
+                return Ok(Jwt.GenerateToken(r.User!.Identifier, r.User.Key, TimeSpan.FromHours(1), InSession));
             }
 
             throw await Report.WriteControllerReport(
                 new(DateTime.Now, new InvalidOperationException("Unable to process credentials"), this, new KeyValuePair<string, object>[]
                 {
                     new ("CredentialVerificationResult", r.Result.ToString()),
-                    new ("Client", r.Client ?? (object)"null"),
+                    new ("User", r.User ?? (object)"null"),
                     new ("SubmittedCredentials", creds)
                 }), "Authentication");
         }
@@ -134,8 +134,8 @@ namespace D_API.Controllers
             if (User.Identity?.IsAuthenticated is not true)
                 return Ok("Unauthenticated");
 
-            Client? cl;
-            if (!User.GetUserKey(out var key, out string? error) || (cl = await Auth.FindClient(key)) is null)
+            User? cl;
+            if (!User.GetUserKey(out var key, out string? error) || (cl = await Auth.FindUser(key)) is null)
                 return Forbid(error ?? "Could not find an user by the given key");
 
             return Ok(cl.Roles);

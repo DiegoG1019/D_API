@@ -2,11 +2,11 @@
 
 namespace D_API.Types.Auth
 {
-    public sealed record CredentialVerificationResults(CredentialVerificationResult Result, Client? Client, string? Message = null) { }
+    public sealed record CredentialVerificationResults(CredentialVerificationResult Result, User? User, string? Message = null) { }
 
-    public sealed record ClientCreationResults(ClientCreationResult? Result, ClientValidCredentials? Client) { }
+    public sealed record UserCreationResults(UserCreationResult? Result, UserValidCredentials? User) { }
 
-    public enum ClientCreationResult
+    public enum UserCreationResult
     {
         Accepted,
         AlreadyExists,

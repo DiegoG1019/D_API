@@ -18,30 +18,30 @@ namespace D_API.Dependencies.Abstract
 
         protected AbstractAuthCredentialsProvider(string hashKey) => HashKey = hashKey;
 
-        public abstract Task<Client?> FindClient(Guid key);
-        public abstract Task<CredentialVerificationResults> Verify(ClientValidCredentials credentials);
+        public abstract Task<User?> FindUser(Guid key);
+        public abstract Task<CredentialVerificationResults> Verify(UserValidCredentials credentials);
 
-        protected virtual async Task<CredentialVerificationResults> VerifyClientCredentials
-            (ClientValidCredentials credentials, Client? client, bool failImmediately = false)
+        protected virtual async Task<CredentialVerificationResults> VerifyUserCredentials
+            (UserValidCredentials credentials, User? user, bool failImmediately = false)
         {
-            if (failImmediately || client is null)
+            if (failImmediately || user is null)
                 return new(CredentialVerificationResult.Forbidden, null);
 
-            var status = client.CurrentStatus;
+            var status = user.CurrentStatus;
 
-            if (status is Client.Status.Inactive)
-                return new(CredentialVerificationResult.Unauthorized, client, "This Key is inactive");
+            if (status is User.Status.Inactive)
+                return new(CredentialVerificationResult.Unauthorized, user, "This Key is inactive");
 
-            if (status is Client.Status.Revoked)
-                return new(CredentialVerificationResult.Revoked, client);
+            if (status is User.Status.Revoked)
+                return new(CredentialVerificationResult.Revoked, user);
 
-            if (status is Client.Status.Active)
+            if (status is User.Status.Active)
             {
-                if (credentials.Identifier != client.Identifier)
-                    return new(CredentialVerificationResult.Unauthorized, client, "Credentials Mismatch");
-                if (await Helper.GetHashAsync(credentials.Identifier, HashKey) != client.Secret)
-                    return new(CredentialVerificationResult.Unauthorized, client, "Credentials Mismatch");
-                return new(CredentialVerificationResult.Authorized, client);
+                if (credentials.Identifier != user.Identifier)
+                    return new(CredentialVerificationResult.Unauthorized, user, "Credentials Mismatch");
+                if (await Helper.GetHashAsync(credentials.Identifier, HashKey) != user.Secret)
+                    return new(CredentialVerificationResult.Unauthorized, user, "Credentials Mismatch");
+                return new(CredentialVerificationResult.Authorized, user);
             }
 
             return new(CredentialVerificationResult.Forbidden, null);

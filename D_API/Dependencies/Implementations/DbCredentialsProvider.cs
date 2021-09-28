@@ -15,18 +15,18 @@ namespace D_API.Dependencies.Implementations
 {
     public class DbCredentialsProvider : AbstractAuthCredentialsProvider
     {
-        private readonly ClientDataContext Db;
+        private readonly UserDataContext Db;
 
-        public DbCredentialsProvider(string hashKey, ClientDataContext db) : base(hashKey) => Db = db;
+        public DbCredentialsProvider(string hashKey, UserDataContext db) : base(hashKey) => Db = db;
 
-        public override async Task<Client?> FindClient(Guid key) 
-            => await Db.Clients.FindAsync(key);
+        public override async Task<User?> FindUser(Guid key) 
+            => await Db.Users.FindAsync(key);
 
-        public override async Task<CredentialVerificationResults> Verify(ClientValidCredentials credentials)
+        public override async Task<CredentialVerificationResults> Verify(UserValidCredentials credentials)
         {
-            Client client;
-            bool fail = (client = await Db.Clients.FindAsync(credentials.Key)) is null;
-            return await VerifyClientCredentials(credentials, client, fail);
+            User user;
+            bool fail = (user = await Db.Users.FindAsync(credentials.Key)) is null;
+            return await VerifyUserCredentials(credentials, user, fail);
         }
     }
 }

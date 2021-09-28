@@ -7,17 +7,17 @@ using System.Threading.Tasks;
 
 namespace D_API.Models.DataKeeper
 {
-    public class ClientHandle
+    public class UserHandle
     {
         [Key]
         public Guid Key { get; init; }
         public string Identifier { get; init; }
 
-        public ClientHandle(Guid key, string identifier)
+        public UserHandle(Guid key, string identifier)
         {
             Key = key;
             Identifier = identifier;
         }
-        public ClientHandle(Client client) : this(client.Key, client.Identifier) { }
+        public UserHandle(User user) : this(user.Key, user.Identifier) { }
     }
 }

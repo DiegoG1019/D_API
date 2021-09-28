@@ -18,9 +18,9 @@ namespace D_API
         public List<long> AllowedUsers { get; init; } = new() { 0 };
         public long? EventChannelId { get; init; } = 0;
         
-        public string? ClientSecretHashKey { get; set; }
+        public string? UserSecretHashKey { get; set; }
 
-        public DbConnectionSettings ClientDataDbConnectionSettings { get; init; } = new();
+        public DbConnectionSettings UserDataDbConnectionSettings { get; init; } = new();
 
         public string? JWTSecurityKey { get; init; }
 

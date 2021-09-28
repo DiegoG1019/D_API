@@ -4,49 +4,49 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace D_API.Models.Auth
 {
-    public class Client
+    public class User
     {
         public enum Status
         {
             /// <summary>
-            /// This client was never active
+            /// This user was never active
             /// </summary>
             Inactive,
 
             /// <summary>
-            /// This client is currently active and allowed access to the API
+            /// This user is currently active and allowed access to the API
             /// </summary>
             Active,
 
             /// <summary>
-            /// This client was once active, but is now revoked.
+            /// This user was once active, but is now revoked.
             /// </summary>
             Revoked
         }
 
         /// <summary>
-        /// Comma separated string containing a client's active roles
+        /// Comma separated string containing a user's active roles
         /// </summary>
         [Required]
-        [StringLength(256, ErrorMessage = "Client.Roles Property can have a maximum length of 256 characters")]
+        [StringLength(256, ErrorMessage = "User.Roles Property can have a maximum length of 256 characters")]
         public string Roles { get; set; } = string.Empty;
 
         /// <summary>
-        /// The Client's identifier
+        /// The User's identifier
         /// </summary>
         [Required]
-        [StringLength(128, ErrorMessage = "Client.Identifier Property can have a maximum length of 128 characters")]
+        [StringLength(128, ErrorMessage = "User.Identifier Property can have a maximum length of 128 characters")]
         public string Identifier { get; set; } = string.Empty;
 
         /// <summary>
-        /// The HASHED client secret
+        /// The HASHED user secret
         /// </summary>
         [Required]
         [StringLength(128, ErrorMessage = "Secret")]
         public string Secret { get; set; } = string.Empty;
 
         /// <summary>
-        /// The Client's current status
+        /// The User's current status
         /// </summary>
         [Required]
         [ConcurrencyCheck]

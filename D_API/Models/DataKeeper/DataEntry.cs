@@ -9,7 +9,7 @@ namespace D_API.Models.DataKeeper
 {
     public class DataEntry
     {
-        public List<ClientHandle> Readers { get; init; }
+        public List<UserHandle> Readers { get; init; }
 
         [Key, Column(Order = 0)]
         public Guid Owner { get; init; }
@@ -35,7 +35,7 @@ namespace D_API.Models.DataKeeper
 
         private DataEntry(Guid owner, string identifier, byte[] data, Guid readOnlyKey) 
             : this(owner, identifier, data, readOnlyKey, new()) { }
-        public DataEntry(Guid owner, string identifier, byte[] data, Guid readOnlyKey, List<ClientHandle> readers)
+        public DataEntry(Guid owner, string identifier, byte[] data, Guid readOnlyKey, List<UserHandle> readers)
         {
             Readers = readers;
             Owner = owner;

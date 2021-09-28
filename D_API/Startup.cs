@@ -79,9 +79,9 @@ namespace D_API
 
                 // ---- JWT Unrelated Code
 
-                var dbsettings = Settings<APISettings>.Current.ClientDataDbConnectionSettings;
+                var dbsettings = Settings<APISettings>.Current.UserDataDbConnectionSettings;
                 if (dbsettings.Endpoint is not SettingsTypes.DbEndpoint.NoDB)
-                    services.AddDbContext<ClientDataContext>(dbsettings.Endpoint switch
+                    services.AddDbContext<UserDataContext>(dbsettings.Endpoint switch
                     {
                         SettingsTypes.DbEndpoint.SQLServer => options => options.UseSqlServer(dbsettings.ConnectionString),
                         SettingsTypes.DbEndpoint.CosmosDB => throw new NotImplementedException("CosmosDB is not yet implemented"),
@@ -89,10 +89,10 @@ namespace D_API
                         _ => throw new NotSupportedException($"Database Type {dbsettings.Endpoint} is not supported")
                     });
 
-                services.AddScoped<IAppDataKeeper>(x => new DbDataKeeper((ClientDataContext)x.GetService(typeof(ClientDataContext))!));
+                services.AddScoped<IAppDataKeeper>(x => new DbDataKeeper((UserDataContext)x.GetService(typeof(UserDataContext))!));
 
                 var (hashkey, enkey, eniv) = GetMCVPData();
-                services.AddScoped<IAuthCredentialsProvider>(x => new DbCredentialsProvider(hashkey, (ClientDataContext)x.GetService(typeof(ClientDataContext))!));
+                services.AddScoped<IAuthCredentialsProvider>(x => new DbCredentialsProvider(hashkey, (UserDataContext)x.GetService(typeof(UserDataContext))!));
 
                 services.AddControllers();
                 services.AddSwaggerGen(c =>
@@ -192,27 +192,27 @@ namespace D_API
 
                 static string GetHashKey()
                 {
-                    if (Settings<APISettings>.Current.ClientSecretHashKey is not null)
+                    if (Settings<APISettings>.Current.UserSecretHashKey is not null)
                     {
-                        Log.Information($"Obtained Client Secret HashKey from configurations file");
-                        return Settings<APISettings>.Current.ClientSecretHashKey;
+                        Log.Information($"Obtained User Secret HashKey from configurations file");
+                        return Settings<APISettings>.Current.UserSecretHashKey;
                     }
 
                     string[] args = Environment.GetCommandLineArgs();
                     if(args.Length is >= 2)
                     {
-                        Log.Information($"Obtained Client Secret HashKey from Command Line Arguments file");
+                        Log.Information($"Obtained User Secret HashKey from Command Line Arguments file");
                         return args[1];
                     }
 
                     string? envkey;
                     if ((envkey = Environment.GetEnvironmentVariable("SecretHashKey")) is not null)
                     {
-                        Log.Information("Obtained Client Secret HashKey from an environment variable");
+                        Log.Information("Obtained User Secret HashKey from an environment variable");
                         return envkey;
                     }
 
-                    Log.Error("Could not obtain a Client Secret HashKey from configurations file, command line arguments or an environment varible. Using default key instead.");
+                    Log.Error("Could not obtain a User Secret HashKey from configurations file, command line arguments or an environment varible. Using default key instead.");
                     return "&fCd>2Cpxz=@SK>^sQkt5zV0aE]8IKNsqazFOPb:m-RBq0VsBSN?Ebn&^aiO6wE@";
                 }
             }

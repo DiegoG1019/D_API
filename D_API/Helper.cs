@@ -32,13 +32,13 @@ namespace D_API
             Claim? c;
             if ((c = user.Claims.FirstOrDefault(x => x.Type is ClaimTypes.NameIdentifier)) is null)
             {
-                error = "The claims of this client are invalid";
+                error = "The claims of this user are invalid";
                 key = Guid.Empty;
                 return false;
             }
             if (!Guid.TryParse(c.Value, out key))
             {
-                error = "The client's key is invalid";
+                error = "The user's key is invalid";
                 return false;
             }
             error = null;
