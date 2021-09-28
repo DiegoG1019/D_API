@@ -1,4 +1,6 @@
 ﻿using DiegoG.Utilities.Measures;
+using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace D_API.Models.DataKeeper.DataUsage.Complex
@@ -6,6 +8,9 @@ namespace D_API.Models.DataKeeper.DataUsage.Complex
     [ComplexType]
     public class DataMeasure : Data
     {
+        [Key]
+        public Guid Key { get; set; }
+
         public DataMeasure() : base() { }
         public DataMeasure(double value, DataPrefix prefix = DataPrefix.n) : base(value, prefix) { }
 
