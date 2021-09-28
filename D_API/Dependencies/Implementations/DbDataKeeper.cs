@@ -81,7 +81,7 @@ namespace D_API.Dependencies.Implementations
 
                 var dataEntry = await Db.DataEntries.FindAsync(userkey, datakey);
 
-                if (dataEntry is null || !dataEntry.IsImportant)
+                if (dataEntry is null or { IsImportant: false })
                     return new(DataOpResult.DataDoesNotExist, null, 0);
 
                 usageTracker.DailyTransferUsage.Trackers.Enqueue(new(DateTime.Now, DailyTransferExpiration, dataEntry.Size, 0));
