@@ -1,15 +1,17 @@
 ﻿using NeoSmart.AsyncLock;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Threading.Tasks;
 
 namespace D_API.Models.DataKeeper.DataUsage.Complex
 {
-    [ComplexType]
     public class DailyUsageTracker
     {
-        [ComplexType]
+        [Key]
+        public Guid Key { get; set; }
+
         public class ManagedTracker : UsageTracker
         {
             public DateTime Created { get; set; }
@@ -24,7 +26,7 @@ namespace D_API.Models.DataKeeper.DataUsage.Complex
 
         private readonly AsyncLock Sync = new();
 
-        public Queue<ManagedTracker> Trackers { get; init; } = new();
+        public List<ManagedTracker> Trackers { get; init; } = new();
 
         public async Task<UsageTracker> GetTotal()
         {
@@ -40,15 +42,11 @@ namespace D_API.Models.DataKeeper.DataUsage.Complex
 
         public async Task ClearOutdatedTrackers()
         {
+            ManagedTracker tr;
             using (await Sync.LockAsync())
-                while(Trackers.Count > 0)
-                {
-                    var tr = Trackers.Peek();
-                    if (tr.Created + tr.Expiration < DateTime.Now)
-                        Trackers.Dequeue();
-                    else
-                        break;
-                }
+                for(int i = 0; i < Trackers.Count; i++)
+                    if ((tr = Trackers[i]).Created + tr.Expiration < DateTime.Now)
+                        Trackers.RemoveAt(i--);
         }
     }
 }
