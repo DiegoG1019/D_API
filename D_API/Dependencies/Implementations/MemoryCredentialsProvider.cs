@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 
 namespace D_API.Dependencies.Implementations
 {
-    public class MemoryCredentialsVerifier : AbstractAuthCredentialsVerifier
+    public class MemoryCredentialsProvider : AbstractAuthCredentialsProvider
     {
         private readonly Task<Dictionary<Guid, Client>> Clients;
 
-        public MemoryCredentialsVerifier(string hashKey, string? encryptionKey, string? encryptionIV) : base(hashKey)
+        public MemoryCredentialsProvider(string hashKey, string? encryptionKey, string? encryptionIV) : base(hashKey)
         {
             const string file = "creds";
             string dir = Directories.InData("ClientCredentials");

@@ -13,11 +13,11 @@ using DiegoG.Utilities.IO;
 
 namespace D_API.Dependencies.Implementations
 {
-    public class DbCredentialsVerifier : AbstractAuthCredentialsVerifier
+    public class DbCredentialsProvider : AbstractAuthCredentialsProvider
     {
         private readonly ClientDataContext Db;
 
-        public DbCredentialsVerifier(string hashKey, ClientDataContext db) : base(hashKey) => Db = db;
+        public DbCredentialsProvider(string hashKey, ClientDataContext db) : base(hashKey) => Db = db;
 
         public override async Task<Client?> FindClient(Guid key) 
             => await Db.Clients.FindAsync(key);

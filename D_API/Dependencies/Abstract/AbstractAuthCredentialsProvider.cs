@@ -12,11 +12,11 @@ using DiegoG.Utilities.IO;
 
 namespace D_API.Dependencies.Abstract
 {
-    public abstract class AbstractAuthCredentialsVerifier : IAuthCredentialsVerifier
+    public abstract class AbstractAuthCredentialsProvider : IAuthCredentialsProvider
     {
         protected readonly string HashKey;
 
-        protected AbstractAuthCredentialsVerifier(string hashKey) => HashKey = hashKey;
+        protected AbstractAuthCredentialsProvider(string hashKey) => HashKey = hashKey;
 
         public abstract Task<Client?> FindClient(Guid key);
         public abstract Task<CredentialVerificationResults> Verify(ClientValidCredentials credentials);

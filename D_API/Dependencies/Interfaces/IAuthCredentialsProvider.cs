@@ -12,7 +12,7 @@ using DiegoG.Utilities.IO;
 
 namespace D_API.Dependencies.Interfaces
 {
-    public interface IAuthCredentialsVerifier
+    public interface IAuthCredentialsProvider
     {
         public Task<CredentialVerificationResults> Verify(ClientValidCredentials credentials);
 
