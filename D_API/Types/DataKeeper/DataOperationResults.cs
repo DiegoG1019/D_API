@@ -41,4 +41,12 @@
     public record DataOperationResults(DataOpResult Result) { }
     public record DataOperationResults<T>(DataOpResult Result, T Value) { }
     public record DataOperationResults<T1,T2>(DataOpResult Result, T1 FirstValue, T2 SecondValue) { }
+
+    public enum UserOperationResult
+    {
+        Success,
+        Failure,
+    }
+
+    public record UserOperationResults(UserOperationResult Result) { }
 }
