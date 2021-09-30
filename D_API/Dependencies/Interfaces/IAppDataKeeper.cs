@@ -21,6 +21,7 @@ namespace D_API.Dependencies.Interfaces
         public Task<DataOperationResults<byte[]?, double>> DownloadReadonly(Guid userkey, Guid dataId);
 
         public bool EnsureRoot();
+        public Task<UserOperationResults> SetUserQuotas(Guid userkey, double? upload = null, double? download = null, double? storage = null);
 
         public Task<bool> CheckExists(Guid userkey, string datakey);
         public Task<TransferReport> GetTransferQuota(Guid userkey);

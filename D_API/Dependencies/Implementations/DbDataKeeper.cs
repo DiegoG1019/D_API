@@ -180,5 +180,14 @@ namespace D_API.Dependencies.Implementations
         }
 
         public bool EnsureRoot() => DbHelper.InitializeRootUser(Db, HashKey);
+        public async Task<UserOperationResults> SetUserQuotas(Guid userkey, double? upload = null, double? download = null, double? storage = null)
+        {
+            var usageTracker = await Db.UserDataTrackers.FindAsync(userkey);
+            usageTracker.DailyTransferUploadQuota = upload ?? usageTracker.DailyTransferUploadQuota;
+            usageTracker.DailyTransferDownloadQuota = download ?? usageTracker.DailyTransferDownloadQuota;
+            usageTracker.StorageQuota = storage ?? usageTracker.StorageQuota;
+            await Db.SaveChangesAsync();
+            return new(UserOperationResult.Success);
+        }
     }
 }
