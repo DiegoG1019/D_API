@@ -23,7 +23,7 @@ namespace D_API.Types.Auth
         public Guid Key { get; private init; }
 
         /// <summary>
-        /// The user secret
+        /// The user's UNHASHED secret
         /// </summary>
         public string Secret { get; private init; }
 
