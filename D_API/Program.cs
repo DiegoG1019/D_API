@@ -16,6 +16,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using D_API.Types.Utilities;
+using DiegoG.Utilities.Measures;
 
 namespace D_API
 {
@@ -60,7 +61,10 @@ namespace D_API
                        .MinimumLevel.Verbose()
                        .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                        .Enrich.FromLogContext()
-                       .WriteTo.File(Directories.InLogs(".log"), rollingInterval: RollingInterval.Hour, restrictedToMinimumLevel: LogEventLevel.Verbose)
+                       .WriteTo.File(Directories.InLogs(".log"),
+                                     rollingInterval: RollingInterval.Hour,
+                                     restrictedToMinimumLevel: LogEventLevel.Verbose,
+                                     fileSizeLimitBytes: (long)Data.GetTotalBytes(10, Data.DataPrefix.Mega))
 #if DEBUG
                        .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Debug)
 #else
