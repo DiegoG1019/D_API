@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace D_API.Types.Users
 {
-    public record UserCreationResults(UserCreationResult? Result, UserValidCredentials? Credentials, string? ReasonForDenial = null);
+    public record UserCreationResults(UserCreationResult? Result, UserValidCredentials? Credentials, string? ReasonForDenial = null)
     {
         public IEnumerable<UserServiceData>? ServiceData { get; init; }
     }
