@@ -1,4 +1,5 @@
 ﻿using D_API.DataContexts;
+using D_API.Enums;
 using D_API.Models.Auth;
 using D_API.Models.DataKeeper;
 using DiegoG.Utilities.Measures;
@@ -27,7 +28,7 @@ namespace D_API
                 CurrentStatus = User.Status.Active,
                 Identifier = "Root",
                 Key = ui,
-                Roles = UserRoles.Root,
+                Roles = UserAccessRoles.Root,
                 Secret = Helper.GetHash(us, hashKey)
             };
 
