@@ -13,18 +13,6 @@ using Telegram.Bot.Types;
 
 namespace D_API
 {
-    public static class AuthorizationRoles
-    {
-        public const string Root = "root";
-        public const string AppDataHost = "root,adh";
-    }
-
-    public static class UserRoles
-    {
-        public const string Root = "root";
-        public const string AppDataHost = "adh";
-    }
-
     public static class Helper
     {
         public static bool GetUserKey(this ClaimsPrincipal user, out Guid key, [NotNullWhen(false)]out string? error)
