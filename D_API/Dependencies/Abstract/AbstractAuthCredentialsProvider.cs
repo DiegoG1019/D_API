@@ -40,7 +40,7 @@ namespace D_API.Dependencies.Abstract
             {
                 if (credentials.Identifier != user.Identifier)
                     return new(CredentialVerificationResult.Unauthorized, user, "Credentials Mismatch");
-                if (await Helper.GetHashAsync(credentials.Identifier, HashKey) != user.Secret)
+                if (await Helper.GetHashAsync(credentials.Secret, HashKey) != user.Secret)
                     return new(CredentialVerificationResult.Unauthorized, user, "Credentials Mismatch");
                 return new(CredentialVerificationResult.Authorized, user);
             }
