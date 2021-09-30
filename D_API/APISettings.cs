@@ -1,4 +1,5 @@
-﻿using D_API.SettingsTypes;
+﻿using D_API.Models.Auth;
+using D_API.SettingsTypes;
 using DiegoG.Utilities.Settings;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace D_API
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         public string SettingsType => "APISettings";
-        public ulong Version => 2;
+        public ulong Version => 3;
 
         public string? TelegramAPIKey { get; init; }
         public List<long> AllowedUsers { get; init; } = new() { 0 };
