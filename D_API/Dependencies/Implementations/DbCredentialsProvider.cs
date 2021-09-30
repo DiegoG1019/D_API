@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using DiegoG.Utilities.IO;
 using D_API.Models.DataKeeper;
 using DiegoG.Utilities.Measures;
+using D_API.Types.Users;
 
 namespace D_API.Dependencies.Implementations
 {
@@ -32,5 +33,28 @@ namespace D_API.Dependencies.Implementations
         }
 
         public override bool EnsureRoot() => DbHelper.InitializeRootUser(Db, HashKey);
+
+        public override async Task<UserCreationResults> Create(UserCreationData newUser)
+        {
+            var r = await VerifyUserCreation(newUser, await Task.Run(() => Db.Users.FirstOrDefault(x => x.Identifier == newUser.Identifier)), false);
+            if(r.Result is UserCreationResult.Accepted)
+            {
+                if (r.Credentials is null)
+                    throw new InvalidOperationException("VerifyUserCreation resulted in an Accepted response, but the returned Credentials were null");
+                var newu = new User()
+                {
+                    CurrentStatus = User.Status.Active,
+                    Identifier = newUser.Identifier,
+                    Roles = newUser.Roles,
+                    Key = r.Credentials.Key,
+                    Secret = await Helper.GetHashAsync(r.Credentials.Secret, HashKey)
+                };
+                Db.Users.Add(newu);
+                Db.UserHandles.Add(new(newu));
+                Db.UserDataTrackers.Add(UserDataTracker.Empty(newu.Key));
+                await Db.SaveChangesAsync();
+            }
+            return r;
+        }
     }
 }

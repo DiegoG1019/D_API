@@ -9,6 +9,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System;
 using DiegoG.Utilities.IO;
+using D_API.Types.Users;
+using D_API.Enums;
 
 namespace D_API.Dependencies.Abstract
 {
@@ -46,6 +48,19 @@ namespace D_API.Dependencies.Abstract
             }
 
             return new(CredentialVerificationResult.Forbidden, null);
+        }
+
+        public abstract Task<UserCreationResults> Create(UserCreationData newUser);
+
+        protected virtual async Task<UserCreationResults> VerifyUserCreation(UserCreationData userData, User? user, bool failImmediately = false)
+        {
+            if (failImmediately)
+                return new UserCreationResults(UserCreationResult.Denied, null);
+            if (user is not null)
+                return new UserCreationResults(UserCreationResult.AlreadyExists, null);
+            if (userData.Roles.Contains(UserAccessRoles.Root))
+                return new UserCreationResults(UserCreationResult.Denied, null, "Cannot create a new Root user");
+            return new UserCreationResults(UserCreationResult.Accepted, new(Guid.NewGuid(), await Helper.GenerateUnhashedSecretAsync(), userData.Identifier));
         }
     }
 }
