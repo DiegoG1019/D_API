@@ -19,6 +19,8 @@ using DiegoG.Utilities.Settings;
 using System;
 using System.Linq;
 using Serilog;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Data;
 
 namespace D_API
 {
@@ -89,9 +91,10 @@ namespace D_API
                         _ => throw new NotSupportedException($"Database Type {dbsettings.Endpoint} is not supported")
                     });
 
-                services.AddScoped<IAppDataKeeper>(x => new DbDataKeeper((UserDataContext)x.GetService(typeof(UserDataContext))!));
-
                 var (hashkey, enkey, eniv) = GetMCVPData();
+
+                services.AddScoped<IAppDataKeeper>(x => new DbDataKeeper((UserDataContext)x.GetService(typeof(UserDataContext))!, hashkey));
+
                 services.AddScoped<IAuthCredentialsProvider>(x => new DbCredentialsProvider(hashkey, (UserDataContext)x.GetService(typeof(UserDataContext))!));
 
                 services.AddControllers();
@@ -133,6 +136,8 @@ namespace D_API
                 StartupTime = startwatch.Elapsed;
                 stopwatch.Start();
             }
+
+            //private static Task 
 
             private static (string, string?, string?) GetMCVPData()
             {
