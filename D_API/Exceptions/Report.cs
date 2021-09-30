@@ -12,7 +12,25 @@ namespace D_API.Exceptions
 {
     public static class Report
     {
-        public record ReportData(DateTime CreatedAt, Exception Exception, object? Data = null, params KeyValuePair<string, object>[] OtherData) 
+        public class ExceptionReport
+        {
+            public string? Message { get; init; }
+            public string? StackTrace { get; init; }
+            public string Type { get; init; }
+            public System.Collections.IDictionary Data { get; init; }
+            public Exception Exception { get; init; }
+            public ExceptionReport(Exception exception)
+            {
+                Exception = exception;
+                Message = exception.Message;
+                StackTrace = exception.StackTrace;
+                Type = exception.GetType().Name;
+                Data = exception.Data;
+            }
+
+            public static implicit operator ExceptionReport(Exception exc) => new(exc);
+        }
+        public record ReportData(DateTime CreatedAt, ExceptionReport Exception, object? Data = null, params KeyValuePair<string, object>[] OtherData) 
         {
             public string StackTrace { get; } = Environment.StackTrace;
         }
@@ -49,17 +67,6 @@ namespace D_API.Exceptions
         }
 
         /// <summary>
-        /// Writes the report and throws the reported Exception
-        /// </summary>
-        /// <param name="exc"></param>
-        /// <returns></returns>
-        public static async Task WriteReportAndThrow(ReportData report, string category, string? subcategory = null, [CallerMemberName] string? caller = null)
-        {
-            await WriteToFile(report, category, subcategory, caller);
-            throw report.Exception;
-        }
-
-        /// <summary>
         /// Writes the report and returns the reported Exception for throwing
         /// </summary>
         /// <param name="report"></param>
@@ -70,7 +77,7 @@ namespace D_API.Exceptions
         public static async Task<Exception> WriteReport(ReportData report, string category, string? subcategory = null, [CallerMemberName]string? caller = null)
         {
             await WriteToFile(report, category, subcategory, caller);
-            return report.Exception;
+            return report.Exception.Exception;
         }
 
         public static Task<Exception> WriteControllerReport
