@@ -26,7 +26,7 @@ namespace D_API.Models.DataKeeper
         public TransferReport GetTransferQuota()
             => new(DailyTransferUploadQuota, DailyTransferDownloadQuota);
 
-        public List<DailyUsageTracker> Trackers { get; set; }
+        public List<DailyUsageTracker> Trackers { get; set; } = new();
 
         public async Task ClearOutdatedTransferTrackers()
         {
