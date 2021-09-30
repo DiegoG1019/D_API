@@ -16,7 +16,7 @@ namespace D_API.Controllers
 {
     [ApiController]
     [Route("api/v1/auth")]
-    public class AuthController : ControllerBase
+    public class AuthController : D_APIController
     {
         const string InSession = "session";
         const string Requester = "requester";
@@ -55,7 +55,7 @@ namespace D_API.Controllers
         public async Task<IActionResult> RenewRequestToken()
         {
             if (User.GetUserKey(out var key, out string? error) is false) 
-                return Forbid(error);
+                return Forbidden(error);
 
             var user = await Auth.FindUser(key);
             return user?.CurrentStatus switch
@@ -104,7 +104,7 @@ namespace D_API.Controllers
             if (res is CredentialVerificationResult.Forbidden)
             {
                 Log.Information($"User {creds.Identifier} ({creds.Key}) tried to auth, but their credentials were not recognized");
-                return Forbid("The user's credentials were verified, but are not recognized");
+                return Forbidden("The user's credentials were verified, but are not recognized");
             }
 
             if (res is CredentialVerificationResult.Revoked)
@@ -143,7 +143,7 @@ namespace D_API.Controllers
 
             User? cl;
             if (!User.GetUserKey(out var key, out string? error) || (cl = await Auth.FindUser(key)) is null)
-                return Forbid(error ?? "Could not find an user by the given key");
+                return Forbidden(error ?? "Could not find an user by the given key");
 
             return Ok(cl.Roles);
         }
