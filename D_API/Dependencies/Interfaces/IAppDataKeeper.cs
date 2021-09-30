@@ -23,9 +23,9 @@ namespace D_API.Dependencies.Interfaces
         public bool EnsureRoot();
 
         public Task<bool> CheckExists(Guid userkey, string datakey);
-        public Task<UsageTracker> GetTransferQuota(Guid userkey);
-        public Task<UsageTracker> GetTransferUsage(Guid userkey);
-        public Task<DataMeasure> GetStorageQuota(Guid userkey);
-        public Task<DataMeasure> GetStorageUsage(Guid userkey);
+        public Task<TransferReport> GetTransferQuota(Guid userkey);
+        public Task<TransferReport> GetTransferUsage(Guid userkey);
+        public Task<double> GetStorageQuota(Guid userkey);
+        public Task<double> GetStorageUsage(Guid userkey);
     }
 }
