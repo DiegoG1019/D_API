@@ -9,15 +9,17 @@ using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using DiegoG.Utilities.IO;
+using D_API.Types.Users;
 
 namespace D_API.Dependencies.Interfaces
 {
     public interface IAuthCredentialsProvider
     {
         public Task<CredentialVerificationResults> Verify(UserValidCredentials credentials);
-
-        public bool EnsureRoot();
+        public Task<UserCreationResults> Create(UserCreationData newUser);
 
         public Task<User?> FindUser(Guid key);
+
+        public bool EnsureRoot();
     }
 }
