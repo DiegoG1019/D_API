@@ -11,7 +11,6 @@ using System;
 using System.Collections.Generic;
 using DiegoG.Utilities.IO;
 using Microsoft.EntityFrameworkCore.Design;
-using D_API.Models.DataKeeper.DataUsage.Complex;
 
 namespace D_API.DataContexts
 {
@@ -19,8 +18,8 @@ namespace D_API.DataContexts
     {
         public DbSet<User> Users { get; set; }
         public DbSet<UserHandle> UserHandles { get; set; }
-        public DbSet<UserDataTracker> UserDataUsages { get; set; }
-        public DbSet<DataEntry> UserDataEntries { get; set; }
+        public DbSet<UserDataTracker> UserDataTrackers { get; set; }
+        public DbSet<DataEntry> DataEntries { get; set; }
 
     #pragma warning disable CS8618
         public UserDataContext(DbContextOptions<UserDataContext> options) : base(options) { }
@@ -29,7 +28,36 @@ namespace D_API.DataContexts
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<User>().ToTable(nameof(Users));
+            modelBuilder.Entity<UserHandle>().ToTable(nameof(UserHandles));
+            modelBuilder.Entity<UserDataTracker>().ToTable(nameof(UserDataTrackers));
+            modelBuilder.Entity<DataEntry>().ToTable(nameof(DataEntries));
+
+            var user = new User()
+            {
+                CurrentStatus = User.Status.Inactive,
+                Identifier = "Default",
+                Key = Guid.NewGuid(),
+                Roles = "",
+                Secret = Helper.GetHash(Helper.GenerateUnhashedSecret(), Helper.GenerateRandomString(16))
+            };
+
+            modelBuilder.Entity<User>().HasData(user);
+
+            modelBuilder.Entity<UserHandle>().HasData(new UserHandle(user));
+
+            modelBuilder.Entity<UserDataTracker>().HasData(new UserDataTracker()
+            {
+                Key = user.Key,
+                DailyTransferDownloadQuota = 0,
+                DailyTransferUploadQuota = 0,
+                StorageQuota = 0
+            });
+
             modelBuilder.Entity<DataEntry>().HasKey(d => new { d.Owner, d.Identifier });
+            modelBuilder.Entity<DailyUsageTracker>().HasKey(d => d.Index);
+            modelBuilder.Entity<DataEntry>().HasData(new DataEntry(user.Key, "default", Array.Empty<byte>(), Guid.NewGuid(), new List<UserHandle>()));
         }
     }
 }
