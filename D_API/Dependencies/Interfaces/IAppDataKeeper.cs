@@ -1,5 +1,4 @@
 ﻿using D_API.DataContexts;
-using D_API.Models.DataKeeper.DataUsage.Complex;
 using D_API.Types.DataKeeper;
 using System;
 using System.Collections.Generic;
@@ -20,6 +19,8 @@ namespace D_API.Dependencies.Interfaces
         public Task<DataOperationResults> RemoveReaders(Guid userkey, string datakey, params Guid[] readerkeys);
 
         public Task<DataOperationResults<byte[]?, double>> DownloadReadonly(Guid userkey, Guid dataId);
+
+        public bool EnsureRoot();
 
         public Task<bool> CheckExists(Guid userkey, string datakey);
         public Task<UsageTracker> GetTransferQuota(Guid userkey);

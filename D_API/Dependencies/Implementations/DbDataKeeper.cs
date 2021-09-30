@@ -1,7 +1,6 @@
 ﻿using D_API.DataContexts;
 using D_API.Dependencies.Interfaces;
 using D_API.Models.DataKeeper;
-using D_API.Models.DataKeeper.DataUsage.Complex;
 using D_API.Types.DataKeeper;
 using DiegoG.Utilities.IO;
 using DiegoG.Utilities.Measures;
@@ -19,28 +18,31 @@ namespace D_API.Dependencies.Implementations
 {
     public class DbDataKeeper : IAppDataKeeper
     {
-        private static readonly TimeSpan DailyTransferExpiration = TimeSpan.FromDays(1);
-
         private readonly UserDataContext Db;
+        private readonly string HashKey;
 
-        public DbDataKeeper(UserDataContext db) => Db = db;
+        public DbDataKeeper(UserDataContext db, string hashKey)
+        {
+            Db = db;
+            HashKey = hashKey;
+        }
 
         public async Task<bool> CheckExists(Guid userkey, string datakey)
-            => (await Db.UserDataEntries.FindAsync(userkey, datakey))?.ReadAccess.Any(x => x == userkey) is true;
+            => (await Db.DataEntries.FindAsync(userkey, datakey))?.ReadAccess.Any(x => x == userkey) is true;
 
         public async Task<DataOperationResults<double>> Upload(Guid userkey, string datakey, byte[] data, bool overwrite)
         {
             DataEntry? dataEntry;
             UserDataTracker? usageTracker;
             {
-                var t = Db.UserDataEntries.FindAsync(userkey, datakey);
-                usageTracker = await Db.UserDataUsages.FindAsync(userkey);
+                var t = Db.DataEntries.FindAsync(userkey, datakey);
+                usageTracker = await Db.UserDataTrackers.FindAsync(userkey);
                 dataEntry = await t;
             }
 
             try
             {
-                await usageTracker.DailyTransferUsage.ClearOutdatedTrackers();
+                await usageTracker.ClearOutdatedTransferTrackers();
 
                 var (_, ouq, _, ou) = await usageTracker.GetIfOverTransferQuota();
                 if (ouq)
@@ -54,9 +56,9 @@ namespace D_API.Dependencies.Implementations
                     dataEntry = new(userkey, datakey, data, Guid.NewGuid(), new());
                 else if (dataEntry.IsImportant && !overwrite)
                     return new(DataOpResult.NoOverwrite, 0);
-                    //If it does contain the key but the value is null, it should overwrite it
+                //If it does contain the key but the value is null, it should overwrite it
 
-                usageTracker.DailyTransferUsage.Trackers.Add(new(DateTime.Now, DailyTransferExpiration, 0, data.Length));
+                await usageTracker.AddTracker(new(0, data.Length));
                 usageTracker.StorageUsage += data.Length - dataEntry.Size;
                 dataEntry.Data = data;
 
@@ -72,19 +74,19 @@ namespace D_API.Dependencies.Implementations
         {
             try
             {
-                var usageTracker = await Db.UserDataUsages.FindAsync(userkey);
-                await usageTracker.DailyTransferUsage.ClearOutdatedTrackers();
+                var usageTracker = await Db.UserDataTrackers.FindAsync(userkey);
+                await usageTracker.ClearOutdatedTransferTrackers();
 
                 var (odq, _, od, _) = await usageTracker.GetIfOverTransferQuota();
                 if (odq)
                     return new(DataOpResult.OverTransferQuota, null, od);
 
-                var dataEntry = await Db.UserDataEntries.FindAsync(userkey, datakey);
+                var dataEntry = await Db.DataEntries.FindAsync(userkey, datakey);
 
                 if (dataEntry is null or { IsImportant: false })
                     return new(DataOpResult.DataDoesNotExist, null, 0);
 
-                usageTracker.DailyTransferUsage.Trackers.Add(new(DateTime.Now, DailyTransferExpiration, dataEntry.Size, 0));
+                await usageTracker.AddTracker(new(dataEntry.Size, 0));
             
                 return new(DataOpResult.Success, dataEntry.Data, 0);
             }
@@ -94,20 +96,20 @@ namespace D_API.Dependencies.Implementations
             }
         }
 
-        public async Task<UsageTracker> GetTransferQuota(Guid userkey)
-            => (await Db.UserDataUsages.FindAsync(userkey)).DailyTransferQuota;
+        public async Task<TransferReport> GetTransferQuota(Guid userkey)
+            => (await Db.UserDataTrackers.FindAsync(userkey)).GetTransferQuota();
 
-        public async Task<UsageTracker> GetTransferUsage(Guid userkey)
-            => await (await Db.UserDataUsages.FindAsync(userkey)).DailyTransferUsage.GetTotal();
+        public async Task<TransferReport> GetTransferUsage(Guid userkey)
+            => await (await Db.UserDataTrackers.FindAsync(userkey)).GetTotalTransferUsage();
 
-        public async Task<DataMeasure> GetStorageQuota(Guid userkey) 
-            => (await Db.UserDataUsages.FindAsync(userkey)).StorageQuota;
+        public async Task<double> GetStorageQuota(Guid userkey) 
+            => (await Db.UserDataTrackers.FindAsync(userkey)).StorageQuota;
 
-        public async Task<DataMeasure> GetStorageUsage(Guid userkey) 
-            => (await Db.UserDataUsages.FindAsync(userkey)).StorageUsage;
+        public async Task<double> GetStorageUsage(Guid userkey) 
+            => (await Db.UserDataTrackers.FindAsync(userkey)).StorageUsage;
 
         public async Task<DataOperationResults<Guid>> GetReadonlyKey(Guid userkey, string datakey) 
-            => await Db.UserDataEntries.FindAsync(userkey, datakey) switch
+            => await Db.DataEntries.FindAsync(userkey, datakey) switch
             {
                 null or { IsImportant: false } => new(DataOpResult.DataDoesNotExist, Guid.Empty),
                 { ReadOnlyKey: Guid key } => new(DataOpResult.Success, key)
@@ -118,7 +120,7 @@ namespace D_API.Dependencies.Implementations
             if (!readerkeys.Any())
                 return new(DataOpResult.Success);
 
-            var dt = await Db.UserDataEntries.FindAsync(userkey, datakey);
+            var dt = await Db.DataEntries.FindAsync(userkey, datakey);
             if (dt is null or { IsImportant: false })
                 return new(DataOpResult.DataDoesNotExist);
 
@@ -134,7 +136,7 @@ namespace D_API.Dependencies.Implementations
             if (!readerkeys.Any())
                 return new(DataOpResult.Success);
 
-            var dt = await Db.UserDataEntries.FindAsync(userkey, datakey);
+            var dt = await Db.DataEntries.FindAsync(userkey, datakey);
             if (dt is null or { IsImportant: false })
                 return new(DataOpResult.DataDoesNotExist);
 
@@ -149,12 +151,12 @@ namespace D_API.Dependencies.Implementations
         {
             var usageTrackerTask = Task.Run(async () =>
             {
-                var t = await Db.UserDataUsages.FindAsync(userkey);
-                await t.DailyTransferUsage.ClearOutdatedTrackers();
+                var t = await Db.UserDataTrackers.FindAsync(userkey);
+                await t.ClearOutdatedTransferTrackers();
                 return t;
             });
 
-            var dataEntry = Db.UserDataEntries.FirstOrDefault(x => x.ReadOnlyKey == dataKey);
+            var dataEntry = Db.DataEntries.FirstOrDefault(x => x.ReadOnlyKey == dataKey);
 
             if (dataEntry is null or { IsImportant: false })
                 return new(DataOpResult.DataDoesNotExist, null, 0);
@@ -167,8 +169,8 @@ namespace D_API.Dependencies.Implementations
                 var (odq, _, od, _) = await usageTracker.GetIfOverTransferQuota();
                 if (odq)
                     return new(DataOpResult.OverTransferQuota, null, od);
-                
-                usageTracker.DailyTransferUsage.Trackers.Add(new(DateTime.Now, DailyTransferExpiration, dataEntry.Size, 0));
+
+                await usageTracker.AddTracker(new(dataEntry.Size, 0));
                 return new(DataOpResult.Success, dataEntry.Data, 0);
             }
             finally
@@ -176,5 +178,7 @@ namespace D_API.Dependencies.Implementations
                 await Db.SaveChangesAsync();
             }
         }
+
+        public bool EnsureRoot() => DbHelper.InitializeRootUser(Db, HashKey);
     }
 }
