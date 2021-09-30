@@ -41,5 +41,60 @@ namespace D_API.Controllers
                     }
         }
 
+        [HttpPost("create")]
+        [Authorize(Roles = AuthorizationRoles.Root)]
+        public async Task<IActionResult> CreateAccount([FromBody] UserCreationData newUser)
+        {
+            UserCreationResults? r = null;
+            try
+            {
+                r = await Auth.Create(newUser);
+                if (r.Result is UserCreationResult.AlreadyExists)
+                    return Forbidden("An user with this Identifier already exists", r.ReasonForDenial);
+                if (r.Result is UserCreationResult.Denied)
+                    return Forbidden("Your request to create a new user has been denied", r.ReasonForDenial);
+                if (r.Result is UserCreationResult.Accepted)
+                {
+                    if(r.ServiceData is not null)
+                    {
+                        HashSet<Service> Data = new();
+                        foreach(var serdat in r.ServiceData)
+                        {
+                            if (Data.Contains(serdat.Service))
+                                throw new InvalidOperationException("Cannot subscribe to the same service more than once");
+                            Data.Add(serdat.Service);
+                            await (serdat switch
+                            {
+                                { Service: Service.Data } and UserDataKeeperData d => DataKeeper.SetUserQuotas(r.Credentials!.Key,
+                                                                                                              d.UploadQuota,
+                                                                                                              d.DownloadQuota,
+                                                                                                              d.Storage),
+                                _ => throw new InvalidOperationException("The given Service configuration Data does not represent any supported Service available for this user")
+                            });
+                        }
+                    }
+                    return Ok(r.Credentials);
+                }
+
+                throw await Report.WriteControllerReport(
+                            new(DateTime.Now, new InvalidOperationException("User Creation could not be completed"),
+                                this,
+                                new KeyValuePair<string, object?>[]
+                                {
+                                new ("UserCreationData", newUser),
+                                new ("UserCreationResults", r),
+                                }), "Authentication");
+            }
+            catch (Exception e)
+            {
+                throw await Report.WriteControllerReport(
+                        new(DateTime.Now, e, this,
+                            new KeyValuePair<string, object?>[]
+                            {
+                                new ("UserCreationData", newUser),
+                                new ("UserCreationResults", r),
+                            }), "Authentication");
+            }
+        }
     }
 }
