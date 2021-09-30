@@ -78,6 +78,15 @@ namespace D_API.Models.DataKeeper
 
         #endregion
 
-        public UserDataTracker() { }// => Trackers = Task.Run(() => SerializedTrackers.Select(x => DailyUsageTracker.Deserialize(x)).ToList());
+        public UserDataTracker() { }
+
+        public static UserDataTracker Empty(Guid key) => new()
+        {
+            Key = key,
+            DailyTransferDownloadQuota = 0,
+            DailyTransferUploadQuota = 0,
+            StorageQuota = 0,
+            StorageUsage = 0
+        };
     }
 }
