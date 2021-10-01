@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using DiegoG.Utilities.IO;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -10,11 +11,11 @@ namespace D_API.Controllers
     public abstract class D_APIController : Controller
     {
         [NonAction]
-        public ObjectResult Forbidden(string title, string? detail = null)
+        public ObjectResult Forbidden(string title, object? detail = null)
                => Problem(type: "/docs/errors/forbidden",
-                   title: title,
-                   detail: detail,
-                   statusCode: StatusCodes.Status403Forbidden,
-                   instance: HttpContext.Request.Path);
+                          title: title,
+                          detail: Serialization.Serialize.Json(detail),
+                          statusCode: StatusCodes.Status403Forbidden,
+                          instance: HttpContext.Request.Path);
     }
 }
