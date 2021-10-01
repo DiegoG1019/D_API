@@ -11,6 +11,8 @@ namespace D_API.Dependencies.Interfaces
 {
     public interface IAppDataKeeper
     {
+        public record DataKeeperQuotaSettings(double? Upload, double? Download, double? Storage);
+
         public Task<DataOperationResults<double>> Upload(Guid userkey, string datakey, byte[] data, bool overwrite);
         public Task<DataOperationResults<byte[]?, double>> Download(Guid userkey, string datakey);
 
@@ -21,7 +23,7 @@ namespace D_API.Dependencies.Interfaces
         public Task<DataOperationResults<byte[]?, double>> DownloadReadonly(Guid userkey, Guid dataId);
 
         public bool EnsureRoot();
-        public Task<UserOperationResults> SetUserQuotas(Guid userkey, double? upload = null, double? download = null, double? storage = null);
+        public Task<UserOperationResults> SetUserQuotas(Guid userkey, DataKeeperQuotaSettings settings);
 
         public Task<bool> CheckExists(Guid userkey, string datakey);
         public Task<TransferReport> GetTransferQuota(Guid userkey);

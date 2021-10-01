@@ -60,6 +60,7 @@ namespace D_API.Dependencies.Abstract
                 return new UserCreationResults(UserCreationResult.AlreadyExists, null);
             if (userData.Roles.Contains(UserAccessRoles.Root))
                 return new UserCreationResults(UserCreationResult.Denied, null, "Cannot create a new Root user");
+
             return new UserCreationResults(UserCreationResult.Accepted, new(Guid.NewGuid(), await Helper.GenerateUnhashedSecretAsync(), userData.Identifier));
         }
     }
