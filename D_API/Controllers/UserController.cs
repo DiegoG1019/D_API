@@ -61,19 +61,23 @@ namespace D_API.Controllers
                         foreach(var serdat in r.ServiceData)
                         {
                             if (Data.Contains(serdat.Service))
-                                throw new InvalidOperationException("Cannot subscribe to the same service more than once");
+                                throw new InvalidOperationException("Cannot configure the same user service more than once");
                             Data.Add(serdat.Service);
-                            await (serdat switch
+                            if (serdat is { Service: Service.Data })
                             {
-                                { Service: Service.Data } and UserDataKeeperData d => DataKeeper.SetUserQuotas(r.Credentials!.Key,
-                                                                                                              d.UploadQuota,
-                                                                                                              d.DownloadQuota,
-                                                                                                              d.Storage),
-                                _ => throw new InvalidOperationException("The given Service configuration Data does not represent any supported Service available for this user")
-                            });
+                                if(serdat.ToDataKeeperQuotaSettings() is { Success: true } and { Data: IAppDataKeeper.DataKeeperQuotaSettings dat })
+                                {
+                                    await DataKeeper.SetUserQuotas(r.Credentials!.Key, dat);
+                                    r.ServiceConfigurationResults.Add($"Succesfully set UserQuotas to Upload:{dat.Upload}, Download:{dat.Download}, Storage:{dat.Storage}");
+                                    continue;
+                                }
+                                r.ServiceConfigurationResults.Add($"DataKeeper Quota Settings were invalid, did not configure");
+                            }
+                            throw new InvalidOperationException("The given Service configuration Data does not represent any supported Service available for this user");
                         }
                     }
-                    return Ok(r.Credentials);
+
+                    return Ok(r);
                 }
 
                 throw await Report.WriteControllerReport(
