@@ -9,9 +9,7 @@ namespace D_API.Enums
     [Flags]
     public enum Service
     {
-        Users = 1 << 0,
-        Authorization = 1 << 1,
-        Data = 1 << 2,
+        Data = 1 << 0,
     }
 
     public static class EnumExtensions
