@@ -11,9 +11,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "D_API.Test", "D_API.Test\D_
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Misc", "Misc", "{747155EF-D0E6-49FC-925D-7B5678A352A6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Misc.MiscRoutines", "Misc\MiscRoutines\MiscRoutines.csproj", "{098BD414-73FE-4E98-96B8-7081DEDACB5A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MiscRoutines", "Misc\MiscRoutines\MiscRoutines.csproj", "{098BD414-73FE-4E98-96B8-7081DEDACB5A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Misc.D_API.Configurer.Lib", "Misc\D_API.Configurer.Lib\D_API.Configurer.Lib.csproj", "{44419CFB-812C-4D81-8C12-0AB38D10587C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "D_API.Configurer.Lib", "Misc\D_API.Configurer.Lib\D_API.Configurer.Lib.csproj", "{44419CFB-812C-4D81-8C12-0AB38D10587C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B44BF58D-A5D4-41D4-A6F9-712FAA8E10DA}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
