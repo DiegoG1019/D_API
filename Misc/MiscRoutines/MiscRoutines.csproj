@@ -13,9 +13,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\D_API.Lib\D_API.Lib.csproj" />
-    <ProjectReference Include="..\D_API.Test\D_API.Test.csproj" />
-    <ProjectReference Include="..\D_API\D_API.csproj" />
+    <ProjectReference Include="..\..\D_API.Lib\D_API.Lib.csproj" />
+    <ProjectReference Include="..\..\D_API.Test\D_API.Test.csproj" />
+    <ProjectReference Include="..\..\D_API\D_API.csproj" />
   </ItemGroup>
 
 </Project>
