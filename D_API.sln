@@ -13,6 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Misc", "Misc", "{747155EF-D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Misc.MiscRoutines", "Misc\MiscRoutines\MiscRoutines.csproj", "{098BD414-73FE-4E98-96B8-7081DEDACB5A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Misc.D_API.Configurer.Lib", "Misc\D_API.Configurer.Lib\D_API.Configurer.Lib.csproj", "{44419CFB-812C-4D81-8C12-0AB38D10587C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,12 +37,17 @@ Global
 		{098BD414-73FE-4E98-96B8-7081DEDACB5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{098BD414-73FE-4E98-96B8-7081DEDACB5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{098BD414-73FE-4E98-96B8-7081DEDACB5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44419CFB-812C-4D81-8C12-0AB38D10587C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44419CFB-812C-4D81-8C12-0AB38D10587C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44419CFB-812C-4D81-8C12-0AB38D10587C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44419CFB-812C-4D81-8C12-0AB38D10587C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{098BD414-73FE-4E98-96B8-7081DEDACB5A} = {747155EF-D0E6-49FC-925D-7B5678A352A6}
+		{44419CFB-812C-4D81-8C12-0AB38D10587C} = {747155EF-D0E6-49FC-925D-7B5678A352A6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {378BD7ED-33CB-48C1-A2FF-D611E54CA83D}
