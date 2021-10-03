@@ -3,6 +3,7 @@ using D_API.Enums;
 using D_API.Exceptions;
 using D_API.Models.Auth;
 using D_API.Types.Auth;
+using D_API.Types.Responses;
 using D_API.Types.Users;
 using DiegoG.Utilities.Measures;
 using Microsoft.AspNetCore.Authorization;
@@ -50,9 +51,9 @@ namespace D_API.Controllers
             {
                 r = await Auth.Create(newUser);
                 if (r.Result is UserCreationResult.AlreadyExists)
-                    return Forbidden("An user with this Identifier already exists", r.ReasonForDenial);
+                    return Forbidden(new NewUserFailure("An user with this Identifier already exists", r));
                 if (r.Result is UserCreationResult.Denied)
-                    return Forbidden("Your request to create a new user has been denied", r.ReasonForDenial);
+                    return Forbidden(new NewUserFailure("Your request to create a new user has been denied", r));
                 if (r.Result is UserCreationResult.Accepted)
                 {
                     if(r.ServiceData is not null)
@@ -76,8 +77,7 @@ namespace D_API.Controllers
                             throw new InvalidOperationException("The given Service configuration Data does not represent any supported Service available for this user");
                         }
                     }
-
-                    return Ok(r);
+                    return Ok(new NewUserSuccess(r));
                 }
 
                 throw await Report.WriteControllerReport(

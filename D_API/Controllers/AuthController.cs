@@ -11,6 +11,7 @@ using Serilog;
 using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
+using D_API.Types.Responses;
 
 namespace D_API.Controllers
 {
@@ -45,25 +46,25 @@ namespace D_API.Controllers
         [HttpGet("status")]
         public IActionResult VerifyAuth()
             => User.Identity?.IsAuthenticated is false ? 
-                    Unauthorized() :
+                    Unauthorized(new AuthStatus(false, false)) :
                     User.IsInRole(Requester) ?
-                        Ok() :
-                        BadRequest("The received JWT is not a request JWT, did you use a session JWT?");
+                        Ok(new AuthStatus(true, true)) :
+                        BadRequest(new AuthStatus(true, false));
 
         [Authorize(Roles = InSession)]
         [HttpGet("renew")]
         public async Task<IActionResult> RenewRequestToken()
         {
             if (User.GetUserKey(out var key, out string? error) is false) 
-                return Forbidden(error);
+                return Forbidden(new BadUserKey(key, error));
 
             var user = await Auth.FindUser(key);
             return user?.CurrentStatus switch
             {
-                null => base.Unauthorized("A User by the given key could not be found"),
-                Models.Auth.User.Status.Revoked => base.Unauthorized("This user has had their credentials revoked"),
-                Models.Auth.User.Status.Inactive => base.Unauthorized("This user is currently inactive"),
-                Models.Auth.User.Status.Active => base.Ok(await Task.Run<string>(() => Jwt.GenerateToken(user.Identifier, key, TimeSpan.FromSeconds(30), user.Roles + AppendRequester))),
+                null => Unauthorized(new RenewSessionFailure("A User by the given key could not be found")),
+                Models.Auth.User.Status.Revoked => Unauthorized(new RenewSessionFailure("This user has had their credentials revoked")),
+                Models.Auth.User.Status.Inactive => Unauthorized(new RenewSessionFailure("This user is currently inactive")),
+                Models.Auth.User.Status.Active => Ok(new RenewSessionSuccess(await Task.Run(() => Jwt.GenerateToken(user.Identifier, key, TimeSpan.FromSeconds(30), user.Roles + AppendRequester)!))),
                 _ => throw await Report.WriteControllerReport(
                     new(DateTime.Now, new InvalidOperationException("The state of the user cannot be verified"),
                 this, 
@@ -93,7 +94,7 @@ namespace D_API.Controllers
                     errors.Add(error);
 
                 if (errors.Any())
-                    return BadRequest(string.Join(", ", errors));
+                    return BadRequest(new NewSessionBadRequest(errors));
 
                 validCredentials = new(key, creds.Secret!, creds.Identifier!);
             }
@@ -101,28 +102,28 @@ namespace D_API.Controllers
             var r = await Auth.Verify(validCredentials);
             var res = r.Result;
 
-            if (res is CredentialVerificationResult.Forbidden)
+            if (res is CredentialVerificationResult.NotRecognized)
             {
                 Log.Information($"User {creds.Identifier} ({creds.Key}) tried to auth, but their credentials were not recognized");
-                return Forbidden("The user's credentials were verified, but are not recognized");
+                return Forbidden(new NewSessionFailure(res, "The user's credentials were verified, but are not recognized"));
             }
 
             if (res is CredentialVerificationResult.Revoked)
             {
                 Log.Information($"User {r.User!} tried to auth with revoked credentials. Not Authorized");
-                return Unauthorized("The user's credentials were verified, but they have been revoked");
+                return Unauthorized(new NewSessionFailure(res, "The user's credentials were verified, but they have been revoked"));
             }
 
-            if (res is CredentialVerificationResult.Unauthorized)
+            if (res is CredentialVerificationResult.Refused)
             {
                 Log.Information($"User {r.User!} was not Authorized");
-                return Unauthorized("The user's credentials were verified, but you have not been authorized");
+                return Unauthorized(new NewSessionFailure(res, "The user's credentials were verified, but you have not been authorized"));
             }
 
             if (res is CredentialVerificationResult.Authorized) 
             {
                 Log.Information($"User {r.User!} was succesfully authorized");
-                return Ok(Jwt.GenerateToken(r.User!.Identifier, r.User.Key, TimeSpan.FromHours(1), InSession));
+                return Ok(new NewSessionSuccess(Jwt.GenerateToken(r.User!.Identifier, r.User.Key, TimeSpan.FromHours(1), InSession)!));
             }
 
             throw await Report.WriteControllerReport(
@@ -139,13 +140,13 @@ namespace D_API.Controllers
         public async Task<IActionResult> GetRoles()
         {
             if (User.Identity?.IsAuthenticated is not true)
-                return Ok("Unauthenticated");
+                return Unauthorized(new RoleReport("anonymous"));
 
             User? cl;
             if (!User.GetUserKey(out var key, out string? error) || (cl = await Auth.FindUser(key)) is null)
-                return Forbidden(error ?? "Could not find an user by the given key");
+                return Forbidden(new BadUserKey(key, error));
 
-            return Ok(cl.Roles);
+            return Ok(new RoleReport(cl.Roles.Split(',')));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

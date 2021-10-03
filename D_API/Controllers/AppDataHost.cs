@@ -2,6 +2,7 @@
 using D_API.Enums;
 using D_API.Exceptions;
 using D_API.Types.DataKeeper;
+using D_API.Types.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -48,17 +49,17 @@ namespace D_API.Controllers
         public async Task<IActionResult> Download(string datakey)
         {
             if (!User.GetUserKey(out var key, out string? error))
-                return Forbidden(error);
+                return Forbidden(new BadUserKey(key, error));
             if ((error = VerifyDataKey(datakey)) is not null)
-                return BadRequest(error);
+                return BadRequest(new BadDataKey(datakey, error));
             
             var op = await Data.Download(key, datakey);
             return op.Result switch
             {
-                DataOpResult.DataDoesNotExist => NotFound($"Could not find any data matching {datakey}"),
-                DataOpResult.DataInaccessible => Unauthorized($"This user does not have access to {datakey}"),
-                DataOpResult.OverTransferQuota => Forbidden($"This user has exceeded their download quota by {op.SecondValue}"),
-                DataOpResult.Success => Ok(op.FirstValue),
+                DataOpResult.DataDoesNotExist => NotFound(new DataDownloadFailure(datakey, "Could not find any matching data")),
+                DataOpResult.DataInaccessible => Unauthorized(new DataDownloadFailure(datakey, "This user does not have access this data")),
+                DataOpResult.OverTransferQuota => Forbidden(new DataDownloadFailure(datakey, "This user has exceeded their download quota", op.SecondValue)),
+                DataOpResult.Success => Ok(new DataDownloadSuccess(datakey, op.FirstValue)),
                 _ => throw await Report.WriteControllerReport(new(
                     DateTime.Now,
                     new InvalidOperationException($"Expected only DataDoesNotExist, DataInaccessible, OverTransferQuota or Success, received: {op.Result}"),
@@ -78,18 +79,18 @@ namespace D_API.Controllers
         public async Task<IActionResult> Upload(string datakey, [FromBody]UploadRequest upRequest)
         {
             if (!User.GetUserKey(out var key, out string? error))
-                return Forbidden(error);
+                return Forbidden(new BadUserKey(key, error));
             if ((error = VerifyDataKey(datakey) ?? VerifyUploadRequest(upRequest)) is not null)
-                return BadRequest(error);
+                return BadRequest(new BadDataKey(datakey, error));
 
             var op = await Data.Upload(key, datakey, upRequest.Data!, upRequest.Overwrite);
             return op.Result switch
             {
-                DataOpResult.DataInaccessible => Unauthorized($"This user does have access to {datakey}, or the data does not exist"),
-                DataOpResult.OverStorageQuota => Forbidden($"This user has exceeded their storage quota"),
-                DataOpResult.NoOverwrite => Forbidden($"This data already exists, and overwrite parameter is not set to true"),
-                DataOpResult.OverTransferQuota => Forbidden($"This user has exceeded their upload quota"),
-                DataOpResult.Success => Ok(),
+                DataOpResult.DataInaccessible => NotFound(new DataUploadFailure(datakey, "This user does have access to this data, or it does not exist")),
+                DataOpResult.OverStorageQuota => Forbidden(new DataUploadFailure(datakey, "This user has exceeded their storage quota", op.FirstValue)),
+                DataOpResult.NoOverwrite => Forbidden(new DataUploadFailure(datakey, "This data already exists, and overwrite parameter is not set to true")),
+                DataOpResult.OverTransferQuota => Forbidden(new DataUploadFailure(datakey, "This user has exceeded their upload quota")),
+                DataOpResult.Success => Ok(new DataUploadSuccess(datakey, op.SecondValue)),
                 _ => throw await Report.WriteControllerReport(new(
                     DateTime.Now,
                     new InvalidOperationException($"Expected only OverStorageQuota, NoOverwrite, OverTransferQuota or Success, received: {op.Result}"),
@@ -110,9 +111,9 @@ namespace D_API.Controllers
         public async Task<IActionResult> CheckAccess(string datakey)
         {
             if (!User.GetUserKey(out var key, out string? error))
-                return Forbidden(error);
+                return Forbidden(new BadUserKey(key, error));
             if ((error = VerifyDataKey(datakey)) is not null)
-                return BadRequest(error);
+                return BadRequest(new BadDataKey(datakey, error));
 
             return Ok(await Data.CheckExists(key, datakey));
         }

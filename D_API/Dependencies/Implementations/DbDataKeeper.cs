@@ -30,7 +30,7 @@ namespace D_API.Dependencies.Implementations
         public async Task<bool> CheckExists(Guid userkey, string datakey)
             => (await Db.DataEntries.FindAsync(userkey, datakey))?.ReadAccess.Any(x => x == userkey) is true;
 
-        public async Task<DataOperationResults<double>> Upload(Guid userkey, string datakey, byte[] data, bool overwrite)
+        public async Task<DataOperationResults<double, bool>> Upload(Guid userkey, string datakey, byte[] data, bool overwrite)
         {
             DataEntry? dataEntry;
             UserDataTracker? usageTracker;
@@ -46,23 +46,26 @@ namespace D_API.Dependencies.Implementations
 
                 var (_, ouq, _, ou) = await usageTracker.GetIfOverTransferQuota();
                 if (ouq)
-                    return new(DataOpResult.OverTransferQuota, ou);
+                    return new(DataOpResult.OverTransferQuota, ou, false);
 
                 double overstorage = 0;
                 if ((overstorage = usageTracker.WouldSurpassStorageQuota(data.Length)) > 0)
-                    return new(DataOpResult.OverStorageQuota, overstorage);
+                    return new(DataOpResult.OverStorageQuota, overstorage, false);
+
+                bool ow = false;
 
                 if (dataEntry is null)
                     dataEntry = new(userkey, datakey, data, Guid.NewGuid(), new());
-                else if (dataEntry.IsImportant && !overwrite)
-                    return new(DataOpResult.NoOverwrite, 0);
+                else if (ow = dataEntry.IsImportant && !overwrite)
+                    return new(DataOpResult.NoOverwrite, 0, false);
+
                 //If it does contain the key but the value is null, it should overwrite it
 
                 await usageTracker.AddTracker(new(0, data.Length));
                 usageTracker.StorageUsage += data.Length - dataEntry.Size;
                 dataEntry.Data = data;
 
-                return new(DataOpResult.Success, 0);
+                return new(DataOpResult.Success, 0, ow);
             }
             finally
             {
@@ -96,17 +99,11 @@ namespace D_API.Dependencies.Implementations
             }
         }
 
-        public async Task<TransferReport> GetTransferQuota(Guid userkey)
-            => (await Db.UserDataTrackers.FindAsync(userkey)).GetTransferQuota();
-
-        public async Task<TransferReport> GetTransferUsage(Guid userkey)
-            => await (await Db.UserDataTrackers.FindAsync(userkey)).GetTotalTransferUsage();
-
-        public async Task<double> GetStorageQuota(Guid userkey) 
-            => (await Db.UserDataTrackers.FindAsync(userkey)).StorageQuota;
-
-        public async Task<double> GetStorageUsage(Guid userkey) 
-            => (await Db.UserDataTrackers.FindAsync(userkey)).StorageUsage;
+        public async Task<FullTransferReport> GetFullTransferReport(Guid userkey)
+        {
+            var tr = await Db.UserDataTrackers.FindAsync(userkey);
+            return new(await tr.GetTotalTransferUsage(), tr.GetTransferQuota(), tr.StorageUsage, tr.StorageQuota);
+        }
 
         public async Task<DataOperationResults<Guid>> GetReadonlyKey(Guid userkey, string datakey) 
             => await Db.DataEntries.FindAsync(userkey, datakey) switch
