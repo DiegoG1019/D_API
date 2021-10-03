@@ -19,14 +19,7 @@ namespace D_API
         public List<long> AllowedUsers { get; init; } = new() { 0 };
         public long? EventChannelId { get; init; } = 0;
         
-        public string? UserSecretHashKey { get; set; }
-
         public DbConnectionSettings UserDataDbConnectionSettings { get; init; } = new();
-
-        public string? JWTSecurityKey { get; init; }
-
-        public string? EncryptionKey { get; init; }
-        public string? EncryptionIV { get; init; }
 
         public Security Security { get; init; } = new(); 
     }
@@ -41,9 +34,9 @@ namespace D_API.SettingsTypes
         CosmosDB
     }
 
-    public sealed record Security(string? Audience, string? Issuer)
+    public sealed record Security(string? Audience, string? Issuer, string? JWTSecurityKey, string? HashKey, string? EncryptionKey, string? EncryptionIV)
     {
-        public Security() : this (null, null) { }
+        public Security() : this (null, null, null, null, null, null) { }
     }
 
     public sealed record DbConnectionSettings(DbEndpoint Endpoint, string? ConnectionString)

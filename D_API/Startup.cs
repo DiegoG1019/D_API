@@ -145,10 +145,10 @@ namespace D_API
 
                 static string? GetEncryptionIV()
                 {
-                    if (Settings<APISettings>.Current.EncryptionIV is not null)
+                    if (Settings<APISettings>.Current.Security.EncryptionIV is not null)
                     {
                         Log.Information($"Obtained Encryption IV from configurations file");
-                        return Settings<APISettings>.Current.EncryptionIV;
+                        return Settings<APISettings>.Current.Security.EncryptionIV;
                     }
 
                     string[] args = Environment.GetCommandLineArgs();
@@ -171,10 +171,10 @@ namespace D_API
 
                 static string? GetEncryptionKey()
                 {
-                    if (Settings<APISettings>.Current.EncryptionKey is not null)
+                    if (Settings<APISettings>.Current.Security.EncryptionKey is not null)
                     {
                         Log.Information($"Obtained Encryption Key from configurations file");
-                        return Settings<APISettings>.Current.EncryptionKey;
+                        return Settings<APISettings>.Current.Security.EncryptionKey;
                     }
 
                     string[] args = Environment.GetCommandLineArgs();
@@ -197,10 +197,10 @@ namespace D_API
 
                 static string GetHashKey()
                 {
-                    if (Settings<APISettings>.Current.UserSecretHashKey is not null)
+                    if (Settings<APISettings>.Current.Security.HashKey is not null)
                     {
                         Log.Information($"Obtained User Secret HashKey from configurations file");
-                        return Settings<APISettings>.Current.UserSecretHashKey;
+                        return Settings<APISettings>.Current.Security.HashKey;
                     }
 
                     string[] args = Environment.GetCommandLineArgs();
@@ -224,10 +224,10 @@ namespace D_API
 
             private static string GetKey()
             {
-                if (Settings<APISettings>.Current.JWTSecurityKey is not null)
+                if (Settings<APISettings>.Current.Security.JWTSecurityKey is not null)
                 {
                     Log.Information("Obtained JWT Security key from configurations file");
-                    return Settings<APISettings>.Current.JWTSecurityKey;
+                    return Settings<APISettings>.Current.Security.JWTSecurityKey;
                 }
 
                 string[] args = Environment.GetCommandLineArgs();
