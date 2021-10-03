@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace D_API.Lib.Types
+namespace D_API.Lib.Internal
 {
     internal class D_APINoRequestQueue : IRequestQueue
     {

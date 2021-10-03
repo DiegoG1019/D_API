@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace D_API.Lib.Types
+namespace D_API.Lib.Internal
 {
     public class D_APIRequestQueue : IRequestQueue
     {
