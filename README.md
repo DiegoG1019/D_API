@@ -55,7 +55,7 @@ Refer to the appropiate [README](/D_API.Lib/README.md) for more info.
 
 ### Accessing The API
 In order to use the API, you must be a registered user. Upon account creation, you will be granted a unique Id, an identifier of your choosing, and a secret.
-All three pieces of data must be correct before a new session can be opened for you on request. A new session can be requested via `GET:*/api/v1/auth/newsession`, after which you'll receive a JWT you can then use via `GET:*/api/v1/auth/renew` to obtain a request token, which you can use to access your account's services.
+All three pieces of data must be correct before a new session can be opened for you on request. A new session can be requested via `POST:*/api/v1/auth/newsession`, after which you'll receive a JWT you can then use via `GET:*/api/v1/auth/renew` to obtain a request token, which you can use to access your account's services.
 
 ### Endpoints
 
