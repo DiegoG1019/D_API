@@ -77,7 +77,7 @@ namespace D_API.Controllers
                             throw new InvalidOperationException("The given Service configuration Data does not represent any supported Service available for this user");
                         }
                     }
-                    return base.Ok((object)new NewUserSuccess(r));
+                    return Ok(new NewUserSuccess(r));
                 }
 
                 throw await Report.WriteControllerReport(
