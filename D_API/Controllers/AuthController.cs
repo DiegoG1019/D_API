@@ -45,7 +45,7 @@ namespace D_API.Controllers
 
         [HttpGet("status")]
         public IActionResult VerifyAuth()
-            => User.Identity?.IsAuthenticated is false ? 
+            => User.Identity?.IsAuthenticated is false ?
                     Unauthorized(new AuthStatus(false, false)) :
                     User.IsInRole(Requester) ?
                         Ok(new AuthStatus(true, true)) :
@@ -64,7 +64,7 @@ namespace D_API.Controllers
                 null => Unauthorized(new RenewSessionFailure("A User by the given key could not be found")),
                 Models.Auth.User.Status.Revoked => Unauthorized(new RenewSessionFailure("This user has had their credentials revoked")),
                 Models.Auth.User.Status.Inactive => Unauthorized(new RenewSessionFailure("This user is currently inactive")),
-                Models.Auth.User.Status.Active => Ok(new RenewSessionSuccess(await Task.Run(() => Jwt.GenerateToken(user.Identifier, key, TimeSpan.FromSeconds(30), user.Roles + AppendRequester)!))),
+                Models.Auth.User.Status.Active => Ok(new RenewSessionSuccess(await Task.Run(() => (Jwt.GenerateToken(user.Identifier, key, TimeSpan.FromSeconds(30), user.Roles + AppendRequester)!)))),
                 _ => throw await Report.WriteControllerReport(
                     new(DateTime.Now, new InvalidOperationException("The state of the user cannot be verified"),
                 this, 
