@@ -28,12 +28,12 @@ namespace D_API.Dependencies.Abstract
             (UserValidCredentials credentials, User? user, bool failImmediately = false)
         {
             if (failImmediately || user is null)
-                return new(CredentialVerificationResult.Forbidden, null);
+                return new(CredentialVerificationResult.NotRecognized, null);
 
             var status = user.CurrentStatus;
 
             if (status is User.Status.Inactive)
-                return new(CredentialVerificationResult.Unauthorized, user, "This Key is inactive");
+                return new(CredentialVerificationResult.Refused, user, "This Key is inactive");
 
             if (status is User.Status.Revoked)
                 return new(CredentialVerificationResult.Revoked, user);
@@ -41,13 +41,13 @@ namespace D_API.Dependencies.Abstract
             if (status is User.Status.Active)
             {
                 if (credentials.Identifier != user.Identifier)
-                    return new(CredentialVerificationResult.Unauthorized, user, "Credentials Mismatch");
+                    return new(CredentialVerificationResult.Refused, user, "Credentials Mismatch");
                 if (await Helper.GetHashAsync(credentials.Secret, HashKey) != user.Secret)
-                    return new(CredentialVerificationResult.Unauthorized, user, "Credentials Mismatch");
+                    return new(CredentialVerificationResult.Refused, user, "Credentials Mismatch");
                 return new(CredentialVerificationResult.Authorized, user);
             }
 
-            return new(CredentialVerificationResult.Forbidden, null);
+            return new(CredentialVerificationResult.NotRecognized, null);
         }
 
         public abstract Task<UserCreationResults> Create(UserCreationData newUser);
