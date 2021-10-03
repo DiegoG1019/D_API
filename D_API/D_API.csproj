@@ -14,13 +14,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="TelegramBot\**" />
-    <Content Remove="TelegramBot\**" />
-    <EmbeddedResource Remove="TelegramBot\**" />
-    <None Remove="TelegramBot\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="AspNetCoreRateLimit" Version="4.0.1" />
     <PackageReference Include="DiegoG.TelegramBot" Version="1.7.8" />
     <PackageReference Include="DiegoG.Utilities.Base" Version="1.0.2" />
