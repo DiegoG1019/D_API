@@ -23,8 +23,9 @@ namespace D_API.Types.Responses
 
         DataUploadSuccess = 300, DataUploadFailure = 301,
         DataDownloadSuccess = 310, DataDownloadFailure = 311,
-        TransferQuotaStatus = 320,
+        TransferQuotaStatus = 320, DataQuotaExceeded = 321,
         BadDataKey = 330,
+        AccessCheck = 340,
 
         NewUserSuccess = 400, NewUserFailure = 401
     }
@@ -58,14 +59,17 @@ namespace D_API.Types.Responses
     // ----
 
     public record DataUploadSuccess(string DataKey, bool Overwritten) : BaseResponse(APIResponseCode.DataUploadSuccess, "Uploaded Data");
-    public record DataUploadFailure(string DataKey, string Reason, double Excess = 0) : BaseResponse(APIResponseCode.DataUploadFailure, Reason);
+    public record DataUploadFailure(string DataKey, string Reason) : BaseResponse(APIResponseCode.DataUploadFailure, Reason);
 
     public record DataDownloadSuccess(string DataKey, byte[]? Data) : BaseResponse(APIResponseCode.DataDownloadSuccess, "Downloaded Data");
-    public record DataDownloadFailure(string DataKey, string Reason, double Excess = 0) : BaseResponse(APIResponseCode.DataDownloadFailure, Reason);
+    public record DataDownloadFailure(string DataKey, string Reason) : BaseResponse(APIResponseCode.DataDownloadFailure, Reason);
 
     public record TransferQuotaStatus(TransferReport TransferUsage, TransferReport TransferQuota, double StorageUsage, double StorageQuota) : BaseResponse(APIResponseCode.TransferQuotaStatus, "Transfer Report");
+    public record DataQuotaExceeded(double Excess, string Kind) : BaseResponse(APIResponseCode.DataQuotaExceeded, $"Exceeded {Kind} Quota");
 
     public record BadDataKey(string DataKey, string? Error) : BaseResponse(APIResponseCode.BadDataKey, "Data Key is invalid");
+
+    public record AccessCheck(bool IsAccesible) : BaseResponse(APIResponseCode.AccessCheck, "Access Check");
 
     // ----
 
