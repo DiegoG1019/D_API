@@ -13,7 +13,7 @@ namespace D_API.Dependencies.Interfaces
     {
         public record DataKeeperQuotaSettings(double? Upload, double? Download, double? Storage);
 
-        public Task<DataOperationResults<double>> Upload(Guid userkey, string datakey, byte[] data, bool overwrite);
+        public Task<DataOperationResults<double, bool>> Upload(Guid userkey, string datakey, byte[] data, bool overwrite);
         public Task<DataOperationResults<byte[]?, double>> Download(Guid userkey, string datakey);
 
         public Task<DataOperationResults<Guid>> GetReadonlyKey(Guid userkey, string datakey);
