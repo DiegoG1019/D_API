@@ -22,7 +22,7 @@ namespace D_API.Controllers
         public ObjectResult BadRequest(BaseResponse response) => Result(HttpStatusCode.BadRequest, response);
 
         [NonAction]
-        public ObjectResult OK(BaseResponse response) => Result(HttpStatusCode.OK, response);
+        public ObjectResult Ok(BaseResponse response) => Result(HttpStatusCode.OK, response);
 
         [NonAction]
         public ObjectResult Unauthorized(BaseResponse response) => Result(HttpStatusCode.Unauthorized, response);
