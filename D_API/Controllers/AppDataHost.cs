@@ -58,8 +58,8 @@ namespace D_API.Controllers
             {
                 DataOpResult.DataDoesNotExist => NotFound(new DataDownloadFailure(datakey, "Could not find any matching data")),
                 DataOpResult.DataInaccessible => Unauthorized(new DataDownloadFailure(datakey, "This user does not have access this data")),
-                DataOpResult.OverTransferQuota => Forbidden(new DataDownloadFailure(datakey, "This user has exceeded their download quota", op.SecondValue)),
-                DataOpResult.Success => Ok(new DataDownloadSuccess(datakey, op.FirstValue)),
+                DataOpResult.OverTransferQuota => Forbidden(new DataQuotaExceeded(op.SecondValue, "download")),
+                DataOpResult.Success => Ok((object)new DataDownloadSuccess(datakey, op.FirstValue)),
                 _ => throw await Report.WriteControllerReport(new(
                     DateTime.Now,
                     new InvalidOperationException($"Expected only DataDoesNotExist, DataInaccessible, OverTransferQuota or Success, received: {op.Result}"),
@@ -87,10 +87,10 @@ namespace D_API.Controllers
             return op.Result switch
             {
                 DataOpResult.DataInaccessible => NotFound(new DataUploadFailure(datakey, "This user does have access to this data, or it does not exist")),
-                DataOpResult.OverStorageQuota => Forbidden(new DataUploadFailure(datakey, "This user has exceeded their storage quota", op.FirstValue)),
+                DataOpResult.OverStorageQuota => Forbidden(new DataQuotaExceeded(op.FirstValue, "storage")),
                 DataOpResult.NoOverwrite => Forbidden(new DataUploadFailure(datakey, "This data already exists, and overwrite parameter is not set to true")),
-                DataOpResult.OverTransferQuota => Forbidden(new DataUploadFailure(datakey, "This user has exceeded their upload quota")),
-                DataOpResult.Success => Ok(new DataUploadSuccess(datakey, op.SecondValue)),
+                DataOpResult.OverTransferQuota => Forbidden(new DataQuotaExceeded(op.FirstValue, "upload")),
+                DataOpResult.Success => Ok((object)new DataUploadSuccess(datakey, op.SecondValue)),
                 _ => throw await Report.WriteControllerReport(new(
                     DateTime.Now,
                     new InvalidOperationException($"Expected only OverStorageQuota, NoOverwrite, OverTransferQuota or Success, received: {op.Result}"),
@@ -115,7 +115,7 @@ namespace D_API.Controllers
             if ((error = VerifyDataKey(datakey)) is not null)
                 return BadRequest(new BadDataKey(datakey, error));
 
-            return Ok(await Data.CheckExists(key, datakey));
+            return Ok((object)new AccessCheck(await Data.CheckExists(key, datakey)));
         }
 
         [HttpGet("transferreport")]
@@ -126,7 +126,7 @@ namespace D_API.Controllers
 
             var (tu, tq, su, sq) = await Data.GetFullTransferReport(key);
 
-            return Ok(new TransferQuotaStatus(tu, tq, su, sq));
+            return Ok((object)new TransferQuotaStatus(tu, tq, su, sq));
         }
     }
 }
