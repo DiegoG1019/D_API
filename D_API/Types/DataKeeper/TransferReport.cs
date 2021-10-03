@@ -9,4 +9,6 @@ namespace D_API.Types.DataKeeper
     {
         public TransferReport((double up, double down) tuple) : this(tuple.up, tuple.down) { }
     }
+
+    public record FullTransferReport(TransferReport TransferUsage, TransferReport TransferQuota, double StorageUsage, double StorageQuota);
 }
