@@ -87,7 +87,7 @@ namespace D_API.Controllers
             {
                 DataOpResult.DataInaccessible => Unauthorized($"This user does have access to {datakey}, or the data does not exist"),
                 DataOpResult.OverStorageQuota => Forbidden($"This user has exceeded their storage quota"),
-                DataOpResult.NoOverwrite => Forbidden($"This data already exists, and overwrite parameter is not set"),
+                DataOpResult.NoOverwrite => Forbidden($"This data already exists, and overwrite parameter is not set to true"),
                 DataOpResult.OverTransferQuota => Forbidden($"This user has exceeded their upload quota"),
                 DataOpResult.Success => Ok(),
                 _ => throw await Report.WriteControllerReport(new(
