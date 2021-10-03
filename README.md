@@ -11,6 +11,7 @@ I'll be using it primarily for some of my own applications where I'd like certai
 	- [Client](#client)
 	- [Accessing the API](#accessing-the-api)
 	- [Endpoints](#endpoints)
+	- [Response Types](#response-types)
 	- [Rate Limiting](#rate-limiting)
 - [Contributing](#contributing)
 - [License](#license)
@@ -57,6 +58,8 @@ In order to use the API, you must be a registered user. Upon account creation, y
 All three pieces of data must be correct before a new session can be opened for you on request. A new session can be requested via `GET:*/api/v1/auth/newsession`, after which you'll receive a JWT you can then use via `GET:*/api/v1/auth/renew` to obtain a request token, which you can use to access your account's services.
 
 ### Endpoints
+
+The following is a list of all endpoints in this API, along with the type of response and Http Status Code they return. For more info on response types, view the section below this one.
 
 * API/v1/data
 	
@@ -125,6 +128,8 @@ All three pieces of data must be correct before a new session can be opened for 
 		Returns
 		- `200 Ok` Signifying that the token is still valid. 
 		- `401 Unauthorized` If the server receives a valid JWT that is not a Request Token response with a string explaining the issue.
+	
+	*Privacy Notice:* User storage is unencrypted by default and can potentially be accessed by administrative entities. It's highly recommended to encrypt sensitive data before uploading. Saved data cannot be enumerated through the API (Guaranteed true only in [The original repo](https://github.com/DiegoG1019/D_API/))
 
 * API/v1/User
 	
@@ -157,7 +162,117 @@ All three pieces of data must be correct before a new session can be opened for 
 		```
 		Data can be null, or have only the desired service configuration data. If Data contains multiple configuration settings for the same service, the entire request will be rejected.
 
-*Privacy Notice:* User storage is unencrypted by default and can potentially be accessed by administrative entities. It's highly recommended to encrypt sensitive data before uploading. Saved data cannot be enumerated through the API (Guaranteed true only in [The original repo](https://github.com/DiegoG1019/D_API/))
+### Response Types
+All responses from this API are encapsulated in a response object, all which contain an `APIResponseCode` and a `string Title`
+They are grouped by Controller as the first digit, and Endpoint by the second digit
+
+- `UnspecifiedError = 0, string? ErrorType, string? Message`
+- TooManyRequests = 1
+- Message = 100, string MessageType, string MessageData
+- NewSessionSuccess = 200, string Token
+- NewSessionFailure = 201, string Reason, string Details
+- NewSessionBadRequest = 202, string[] Reasons
+- RenewSessionSuccess = 210, string Token
+- RenewSessionFailure = 211, string Reason
+- RoleReport = 220, string[] Roles
+- AuthStatus = 230, bool IsAuthorized, bool IsRequestToken
+- DataUploadSuccess = 300, string DataKey, bool Overwritten
+- DataUploadFailure = 301, string DataKey, string Reason
+- DataDownloadSuccess = 310, string DataKey, byte[]? Data
+- DataDownloadFailure = 311, string DataKey, string Reason
+- TransferQuotaStatus = 320, TransferReport TransferUsage, TransferReport TransferQuota, double StorageUsage, double StorageQuota
+- NewUserSuccess = 400, UserCreationResults? Results
+
+#### TransferQuotaStatus
+Class TransferReport {
+	double Upload
+	double Download
+}
+
+#### NewUserSuccess
+
+Class UserCreationResults {
+	UserCreationResult? Result
+	UserCredentials? Credentials
+	string? ReasonForDenial
+	ServiceData[] ServiceData
+	string[] ServiceConfigurationResults
+}
+
+Enum UserCreationResult {
+	Accepted = 0,
+	AlreadyExists = 1,
+	Denied = 2
+}
+
+Class UserCredentials {
+	Guid Key
+	string Secret
+	string Identifier
+}
+
+Class ServiceData {
+	Service Service
+	object[] Data
+}
+
+Enum Service {
+	Data = 1 // 0000 0001
+}
+* This enum is a flags enum, each value is set to a PO2 value, and can be or'ed (x|y) to verify certain flags, and and'd (x&y) to add certain flags
+
+#### Examples
+##### Unspecified Error
+```json
+{
+	"APIResponseCode": 0,
+	"Title": "",
+	"ErrorType": null,
+	"Message": null
+}```
+##### TransferQuotaStatus
+```json
+{
+	"APIResponseCode": 320,
+	"Title": "Transfer Report",
+	"TransferUsage": {
+		"Upload": 0,
+		"Download": 0
+	},
+	"TransferQuota": {
+		"Upload": 0,
+		"Download": 0
+	},
+	"StorageUsage": 0,
+	"StorageQuota": 0
+}```
+##### NewUserSuccess
+```json
+{
+	"APIResponseCode": 320,
+	"Title": "Transfer Report",
+	"Results": {
+		"Result": 0,
+		"ReasonForDenial": null,
+		"Credentials": {
+			"Key": "50df15e2-e933-45a5-911c-0bba1d1dec7a",
+			"Secret": ";CX9eZ`+Ñi#d$m,}Y3<JJz'KwQ}shDjd*%|@Zm@Zh5)CpG3f56mJ&Gx5OñM3:%%l",
+			"Identifier": "Daniel"
+		},
+		"ServiceData": [
+			{
+				"Service": 0,
+				"Data": [
+					15, 15, 15, 15, "Hello"
+				]
+			}
+		],
+		"ServiceConfigurationResults": [
+			"Success"
+		]
+	}
+
+}```
 
 ### Rate Limiting
 Just like basically any other API, there are rate limits for every user, to prevent abuse.
