@@ -172,6 +172,7 @@ They are grouped by Controller as the first digit, and Endpoint by the second di
 
 - `UnspecifiedError = 0, string? ErrorType, string? Message`
 - `TooManyRequests = 1`
+- `BadUserKey = 2, Guid Key, string? Error`
 - `Message = 100, string MessageType, string MessageData`
 - `NewSessionSuccess = 200, string Token`
 - `NewSessionFailure = 201, string Reason, string Details`
@@ -184,10 +185,12 @@ They are grouped by Controller as the first digit, and Endpoint by the second di
 - `DataUploadFailure = 301, string DataKey, string Reason`
 - `DataDownloadSuccess = 310, string DataKey, byte[]? Data`
 - `DataDownloadFailure = 311, string DataKey, string Reason`
+- `BadDataKey = 330, stringDataKey, string? Error`
 - `TransferQuotaStatus = 320, TransferReport TransferUsage, TransferReport TransferQuota, double StorageUsage, double StorageQuota`
 - `DataQuotaExceeded = 321, double Excess, string Kind`
 - `AccessCheck = 340, bool IsAccesible`
 - `NewUserSuccess = 400, UserCreationResults? Results`
+- `NewUserFailure = 401, string Title, UserCreationResults? Results`
 
 #### TransferQuotaStatus
 ```
