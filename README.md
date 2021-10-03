@@ -61,7 +61,7 @@ All three pieces of data must be correct before a new session can be opened for 
 
 The following is a list of all endpoints in this API, along with the type of response and Http Status Code they return. For more info on response types, view the section below this one.
 
-* API/v1/data
+* `API/v1/data`
 	
 	This controller is intended to be used to store information for certain apps, like configuration files for apps that are hosted in a location with no disk permanence, or otherwise where a secret, on location configuration file is not easily accesible or modifiable.
 
@@ -105,7 +105,7 @@ The following is a list of all endpoints in this API, along with the type of res
 		- `200 OK` With the report
 
 	
-* API/v1/Auth
+* `API/v1/Auth`
 	
 	This controller is intended to facitiliate user authentication to request a JWT
 	
@@ -131,7 +131,7 @@ The following is a list of all endpoints in this API, along with the type of res
 	
 	*Privacy Notice:* User storage is unencrypted by default and can potentially be accessed by administrative entities. It's highly recommended to encrypt sensitive data before uploading. Saved data cannot be enumerated through the API (Guaranteed true only in [The original repo](https://github.com/DiegoG1019/D_API/))
 
-* API/v1/User
+* `API/v1/User`
 	
 	This controller is dedicated to handling user-related requests, like creating a new user
 
@@ -167,30 +167,32 @@ All responses from this API are encapsulated in a response object, all which con
 They are grouped by Controller as the first digit, and Endpoint by the second digit
 
 - `UnspecifiedError = 0, string? ErrorType, string? Message`
-- TooManyRequests = 1
-- Message = 100, string MessageType, string MessageData
-- NewSessionSuccess = 200, string Token
-- NewSessionFailure = 201, string Reason, string Details
-- NewSessionBadRequest = 202, string[] Reasons
-- RenewSessionSuccess = 210, string Token
-- RenewSessionFailure = 211, string Reason
-- RoleReport = 220, string[] Roles
-- AuthStatus = 230, bool IsAuthorized, bool IsRequestToken
-- DataUploadSuccess = 300, string DataKey, bool Overwritten
-- DataUploadFailure = 301, string DataKey, string Reason
-- DataDownloadSuccess = 310, string DataKey, byte[]? Data
-- DataDownloadFailure = 311, string DataKey, string Reason
-- TransferQuotaStatus = 320, TransferReport TransferUsage, TransferReport TransferQuota, double StorageUsage, double StorageQuota
-- NewUserSuccess = 400, UserCreationResults? Results
+- `TooManyRequests = 1`
+- `Message = 100, string MessageType, string MessageData`
+- `NewSessionSuccess = 200, string Token`
+- `NewSessionFailure = 201, string Reason, string Details`
+- `NewSessionBadRequest = 202, string[] Reasons`
+- `RenewSessionSuccess = 210, string Token`
+- `RenewSessionFailure = 211, string Reason`
+- `RoleReport = 220, string[] Roles`
+- `AuthStatus = 230, bool IsAuthorized, bool IsRequestToken`
+- `DataUploadSuccess = 300, string DataKey, bool Overwritten`
+- `DataUploadFailure = 301, string DataKey, string Reason`
+- `DataDownloadSuccess = 310, string DataKey, byte[]? Data`
+- `DataDownloadFailure = 311, string DataKey, string Reason`
+- `TransferQuotaStatus = 320, TransferReport TransferUsage, TransferReport TransferQuota, double StorageUsage, double StorageQuota`
+- `NewUserSuccess = 400, UserCreationResults? Results`
 
 #### TransferQuotaStatus
+```
 Class TransferReport {
 	double Upload
 	double Download
 }
+```
 
 #### NewUserSuccess
-
+```
 Class UserCreationResults {
 	UserCreationResult? Result
 	UserCredentials? Credentials
@@ -198,27 +200,36 @@ Class UserCreationResults {
 	ServiceData[] ServiceData
 	string[] ServiceConfigurationResults
 }
+```
 
+```
 Enum UserCreationResult {
 	Accepted = 0,
 	AlreadyExists = 1,
 	Denied = 2
 }
+```
 
+```
 Class UserCredentials {
 	Guid Key
 	string Secret
 	string Identifier
 }
+```
 
+```
 Class ServiceData {
 	Service Service
 	object[] Data
 }
+```
 
+```
 Enum Service {
 	Data = 1 // 0000 0001
 }
+```
 * This enum is a flags enum, each value is set to a PO2 value, and can be or'ed (x|y) to verify certain flags, and and'd (x&y) to add certain flags
 
 #### Examples
@@ -229,7 +240,8 @@ Enum Service {
 	"Title": "",
 	"ErrorType": null,
 	"Message": null
-}```
+}
+```
 ##### TransferQuotaStatus
 ```json
 {
@@ -245,7 +257,8 @@ Enum Service {
 	},
 	"StorageUsage": 0,
 	"StorageQuota": 0
-}```
+}
+```
 ##### NewUserSuccess
 ```json
 {
@@ -256,7 +269,7 @@ Enum Service {
 		"ReasonForDenial": null,
 		"Credentials": {
 			"Key": "50df15e2-e933-45a5-911c-0bba1d1dec7a",
-			"Secret": ";CX9eZ`+Ñi#d$m,}Y3<JJz'KwQ}shDjd*%|@Zm@Zh5)CpG3f56mJ&Gx5OñM3:%%l",
+			"Secret": ";CX9eZ`+Ã‘i#d$m,}Y3<JJz'KwQ}shDjd*%|@Zm@Zh5)CpG3f56mJ&Gx5OÃ±M3:%%l",
 			"Identifier": "Daniel"
 		},
 		"ServiceData": [
@@ -272,7 +285,8 @@ Enum Service {
 		]
 	}
 
-}```
+}
+```
 
 ### Rate Limiting
 Just like basically any other API, there are rate limits for every user, to prevent abuse.
