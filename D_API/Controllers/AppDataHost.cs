@@ -14,7 +14,7 @@ namespace D_API.Controllers
 {
     [Authorize(Roles = AuthorizationRoles.AppDataHost)]
     [ApiController]
-    [Route("api/v1/appdatahost")]
+    [Route("api/v1/data")]
     public class AppDataHost : D_APIController
     {
         private static readonly object DbSeedLock = new();
