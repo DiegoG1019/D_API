@@ -121,14 +121,11 @@ namespace D_API.Controllers
         public async Task<IActionResult> GetTransferReport()
         {
             if (!User.GetUserKey(out var key, out string? error))
-                return Forbidden(error);
-            return Ok(new
-            {
-                TransferQuota = await Data.GetTransferQuota(key),
-                TransferUsage = await Data.GetTransferUsage(key),
-                StorageQuota = await Data.GetStorageQuota(key),
-                StorageUsage = await Data.GetStorageUsage(key)
-            });
+                return Forbidden(new BadUserKey(key, error));
+
+            var (tu, tq, su, sq) = await Data.GetFullTransferReport(key);
+
+            return Ok(new TransferQuotaStatus(tu, tq, su, sq));
         }
     }
 }

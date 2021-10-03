@@ -26,9 +26,6 @@ namespace D_API.Dependencies.Interfaces
         public Task<UserOperationResults> SetUserQuotas(Guid userkey, DataKeeperQuotaSettings settings);
 
         public Task<bool> CheckExists(Guid userkey, string datakey);
-        public Task<TransferReport> GetTransferQuota(Guid userkey);
-        public Task<TransferReport> GetTransferUsage(Guid userkey);
-        public Task<double> GetStorageQuota(Guid userkey);
-        public Task<double> GetStorageUsage(Guid userkey);
+        public Task<FullTransferReport> GetFullTransferReport(Guid userkey);
     }
 }
