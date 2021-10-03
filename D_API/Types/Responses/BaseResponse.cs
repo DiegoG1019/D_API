@@ -32,7 +32,7 @@ namespace D_API.Types.Responses
     public abstract record BaseResponse(APIResponseCode APIResponseCode, string Title);
 
     public record UnspecifiedError(string Title, string? ErrorType = null, string? Message = null) : BaseResponse(APIResponseCode.UnspecifiedError, Title);
-    public record TooManyRequests(string Title = "You have exceeded your request limit") : BaseResponse(APIResponseCode.TooManyRequests, Title);
+    public record TooManyRequests(double Limit, TimeSpan Period, string RetryAfter, string Title = "You have exceeded your request limit") : BaseResponse(APIResponseCode.TooManyRequests, Title);
     public record BadUserKey(Guid Key, string? Error) : BaseResponse(APIResponseCode.BadUserKey, "The user ID is invalid");
 
     // ----
