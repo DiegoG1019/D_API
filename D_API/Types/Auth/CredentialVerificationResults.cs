@@ -8,9 +8,9 @@ namespace D_API.Types.Auth
     
     public enum CredentialVerificationResult
     {
-        Forbidden,
+        NotRecognized,
         Revoked,
-        Unauthorized,
+        Refused,
         Authorized
     }
 }
