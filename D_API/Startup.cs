@@ -21,6 +21,7 @@ using System.Linq;
 using Serilog;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Data;
+using D_API.Config.Middleware;
 
 namespace D_API
 {
@@ -120,7 +121,7 @@ namespace D_API
                     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "D_API v1"));
                 }
 
-                app.UseClientRateLimiting();
+                app.UseMiddleware<D_APIClientRateLimitMiddleware>();
 
                 app.UseHttpsRedirection();
 
