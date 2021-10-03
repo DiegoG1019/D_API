@@ -11,6 +11,9 @@ I'll be using it primarily for some of my own applications where I'd like certai
 	- [Client](#client)
 	- [Accessing the API](#accessing-the-api)
 	- [Endpoints](#endpoints)
+		- [User Data Host Controller](#user-data-host-controller)
+		- [Authentication Controller](#authentication-controller)
+		- [User Management Controller](#user-management-controller)
 	- [Response Types](#response-types)
 	- [Rate Limiting](#rate-limiting)
 - [Contributing](#contributing)
@@ -61,6 +64,7 @@ All three pieces of data must be correct before a new session can be opened for 
 
 The following is a list of all endpoints in this API, along with the type of response and Http Status Code they return. For more info on response types, view the section below this one.
 
+#### User Data Host Controller
 * `API/v1/data`
 	
 	This controller is intended to be used to store information for certain apps, like configuration files for apps that are hosted in a location with no disk permanence, or otherwise where a secret, on location configuration file is not easily accesible or modifiable.
@@ -110,6 +114,7 @@ The following is a list of all endpoints in this API, along with the type of res
 
 	*Privacy Notice:* User storage is unencrypted by default and can potentially be accessed by administrative entities. It's highly recommended to encrypt sensitive data before uploading. Saved data cannot be enumerated through the API (Guaranteed true only in [The original repo](https://github.com/DiegoG1019/D_API/))
 	
+#### Authentication Controller
 * `API/v1/Auth`
 	
 	This controller is intended to facitiliate user authentication to request a JWT
@@ -135,6 +140,7 @@ The following is a list of all endpoints in this API, along with the type of res
 		- `401 Unauthorized, AuthStatus` If the user is unaunthenticated or is invalid
 		- `400 BadRequest, AuthStatus` If the user sent a JWT that is not a request JWT
 	
+#### User Management Controller
 * `API/v1/User`
 	
 	This controller is dedicated to handling user-related requests, like creating a new user
