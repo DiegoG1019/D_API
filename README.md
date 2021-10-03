@@ -9,7 +9,7 @@ I'll be using it primarily for some of my own applications where I'd like certai
 	- [Configuration](#configuration)
 - [Usage](#usage)
 	- [Client](#client)
-	- [Generating API Keys](#generating-new-api-keys-json-web-tokens-jwt)
+	- [Accessing the API](#accessing-the-api)
 	- [Endpoints](#endpoints)
 	- [Rate Limiting](#rate-limiting)
 - [Contributing](#contributing)
@@ -23,14 +23,28 @@ Aside from that, the app will need to be run once before actually being used, so
 
 ### Configuration
 The program will create a `apisettings.cfg.json` file somewhere in the file system, this location should appear in the console output
-- `string APIKey`: The Telegram API Key of the bot you want to use to interface with the D_API, in order to gain access to useful data such as the current status, and to generate keys
+- `string APIKey`: The Telegram API Key of the bot you want to use to interface with the D_API, in order to gain access to useful data such as the current status, and to output important log data
 - `List<long> AllowedUsers`: A list of user Ids for the bot to respond to. Any user that is not registered here will be IGNORED.
 - `long? EventChannelId`: A channel Id to which the bot will output important (Warning, Error and Fatal) log messages. Set to `null` to ignore, defaults to `0` (invalid)
 - `Security`: a subsection containing:
-	- `Audience`: The audience value with which to generate new keys. Generated keys will not work without this value.
-	- `Issuer`: The issuer value with which to generate new keys. Generated keys will not work without this value.
+	- `string? Audience`: The audience value with which to generate new keys. Generated keys will not work without this value. Ignored and not required if set to null.
+	- `string? Issuer`: The issuer value with which to generate new keys. Generated keys will not work without this value. Ignored and not required if set to null.
+	- `string? JWTSecurityKey`: The key used when generating JWT Tokens. Defaulted if set to null.
+	- `string? Hashkey`: The key used when hashing user secrets and other sensitive user data. Defaulted if set to null.
+	- `string? EncryptionKey`: The key used when encrypting data. Defaulted if set to null.
+	- `string? EncryptionIV`: The IV used when encrypting data. Defaulted if set to null.
+- `DbConnectionSettings`: a subsection containing:
+	- `int Endpoint`: An Enum value: 0 - NoDB | 1 - SQLServer | 2 - CosmosDB
+	- `string? ConnectionString`: The connection string used for the database
 
-Other than all that, it's also __highly__ recommended that the user passes a private generation key to the app as a command line argument, as the default key, albeit randomly generated and hard to memorize, is OPEN SOURCE and a SECURITY LIABILITY
+Alternatively, some values can be configured from command line arguments or environment variables. These values, albeit randomly generated and hard to memorize, are HARD-CODED, OPEN SOURCE and a SECURITY LIABILITY
+
+| Value | Config File | Command Line | Environment Variable | Has Default Value |
+| :-: | :-: | :-: | :-: | :-: | 
+| JWT Security Key | Security.JWTSecurityKey | 0 | JsonWebTokenKey | True |
+| HashKey | Security.HashKey | 1 | SecretHashKey | True |
+| Encryption Key | Security.EncryptionKey | 2 | EncryptionKey | False |
+| Encryption IV | Security.EncryptionIV | 3 | EncryptionIV | False |
 
 ## Usage
 
@@ -38,41 +52,112 @@ Other than all that, it's also __highly__ recommended that the user passes a pri
 I've developed a [Client](/D_API.Lib/) to simplify the usage of the API in your app, it offers methods for every endpoint and is comprehensively customizable, and is complete with automatic [rate limiting](/D_API.Lib/Types/D_APIRequestQueue.cs)
 Refer to the appropiate [README](/D_API.Lib/README.md) for more info.
 
-### Generating new API Keys (Json Web Tokens (jwt))
-That's what the bot is for! Assumming you've configured everything correctly as per the previous section, all you need to do is go over to the Telegram bot you registered, type `/help`, and it'll tell you what to do
+### Accessing The API
+In order to use the API, you must be a registered user. Upon account creation, you will be granted a unique Id, an identifier of your choosing, and a secret.
+All three pieces of data must be correct before a new session can be opened for you on request. A new session can be requested via `GET:*/api/v1/auth/newsession`, after which you'll receive a JWT you can then use via `GET:*/api/v1/auth/renew` to obtain a request token, which you can use to access your account's services.
 
 ### Endpoints
 
-* API/TEST
-	
-	This controller contains methods intended to be used to test the API and probe its availability
-	
-	Defined in [TestController.cs](/D_API/Controllers/TestController.cs), this controller has the following `endpoints`:
-	- `GET:*/api/test/probe`: Probes the API to see if it's alive, can be used anonymously (without a JWT)
-	- `GET:*/api/test/probeAuth`: Probes the API, can only be used by authenticated users, under any role
-	- `GET:*/api/test/probeAuthMod`: Probes the API, can only be used by authenticated users under the `mod`, `admin`, or `root` roles
-	- `GET:*/api/test/probeAuthAdmin`: Probes the API, can only be used by authenticated users under the `admin` or `root` roles
-	- `GET:*/api/test/probeAuthRoot`: Probes the API, can only be used by authenticated users under the `root` roles
-
-* API/v1/AppDataHost
+* API/v1/data
 	
 	This controller is intended to be used to store information for certain apps, like configuration files for apps that are hosted in a location with no disk permanence, or otherwise where a secret, on location configuration file is not easily accesible or modifiable.
 
 	Defined in [AppDataHost.cs](/D_API/Controllers/AppDataHost.cs), this controller has the following `endpoints`:
-	- `GET:*/api/v1/appdatahost/config/{appname}`: Obtains the data associated with the given `appname`, can only be used by authenticated users. Returns `200 Ok` response along with the data if found and the user (The `name` value given when generating the key) is the original writer, `403 Forbidden` if the data is found but the user is not the original writer, and `404 Not Found` if the data is simply not there
-	- `POST:*/api/v1/appdatahost/config/{appname}/`: Equals `POST:*/api/v1/appdatahost/config/{appname}/false`
-	- `POST:*/api/v1/appdatahost/config/{appname}/{ow}`: Saves the contents of the request's body to a non-volatile (Survives server and machine downtime) location, if the user is the original writer, or the data did not previously exist. Cannot overwrite existing data even if access is granted, unless `ow` is set to `true`
+	- `GET:*/api/v1/data/download/{datakey}`: Downloads the requested data by the given key, as long as the user has access to the resource.
+	
+		Returns
+		- `403 Forbidden` If the user is invalid, or if the download quota has been exceeded.
+		- `400 Bad Request` If the request is invalid.
+		- `404 Not Found` If the given data key does not belong to any piece of data the user has access to.
+		- `401 Unauthorized` If the user does not have access to the requested piece of data.
+		- `200 OK` Along with the data
+	- `POST:*/api/v1/data/upload/{datakey}`: Uploads the desired data from the body by the given key, as long as the user has access to the resource.
+	
+		Returns
+		- `403 Forbidden` If the user is invalid, or if the download quota has been exceeded, or an overwrite operation is unconfirmed
+		- `400 Bad Request` If the request is invalid.
+		- `404 Not Found` If the given data key does not belong to any piece of data the user has access to.
+		- `401 Unauthorized` If the user does not have access to the requested piece of data.
+		- `200 OK` Along with the data
+		
+		Request
+		- UploadRequest
+		```json
+		{
+			"Data": null or a one dimensional array of bytes,
+			"Overwrite": true or false
+		}
+		```
+		If Data is null, the desired Datakey will be deleted. If Data already previously existed, and Overwrite is not present or set to false, the request will be rejected.
+	- `GET:*/api/v1/data/access/{datakey}`: Verifies if the current user has access to the requested data
+	
+		Returns
+		- `403 Forbidden` If the user is invalid.
+		- `400 BadRequest` If the request is invalid
+		- `200 OK` With a `boolean` response representing if the user has access to the resource
+	- `GET:*/api/v1/data/transferreport`: Returns a report representing the current usage and quotas of the user
+	
+		Returns
+		- `403 Forbidden` If the user is invalid.
+		- `200 OK` With the report
+
 	
 * API/v1/Auth
 	
-	This controller is intended to facitiliate client authentication to request a JWT
+	This controller is intended to facitiliate user authentication to request a JWT
 	
 	Defined in [AuthController.cs](/D_API/Controllers/AuthController.cs), this controller has the following `endpoints`:
-	- `GET:*/api/v1/newsession`: Requests a session token from the API, that lasts 1 hour, which will be granted if the user is succesfully authenticated through the credentials passed in the request body. Returns a `200 Ok` response along with the Session JWT if the user is succesfully authorized, a `401 Unauthorized` response along with an explanation, if the user failed authentication or if the user's credentials have been revoked; or a `403 Forbidden` response if the credentials are not recognized. The API may also return a `400 Bad Request` if the body is malformed, along with a list of problems. The token granted by this endpoint is only useful to request for Request tokens through renew
-	- `GET:*/api/v1/renew`: When the client uses a Session Token on this endpoint, the server will return a request token which will allow the client to issue requests to other endpoints in the API for 30 seconds, until they request a new one. Returns a `200 Ok` response along the Request JWT if the user is found and validated. `403 Forbidden` if the token is invalid. `401 Unauthorized` if the user key's could not be found.
-	- `GET:*/api/v1/status`: When the client uses a Request Token on this endpoint, the server will return an empty `200 Ok` response, signifying that the token is still valid. Otherwise it'll return an empty `401 Unauthorized` response. If, instead, the server receives a valid JWT that is not a Request Token, the server will return a `401 Unauthorized` response with a string explaining the issue.
+	- `GET:*/api/v1/auth/newsession`: Requests a session token from the API, that lasts 1 hour, which will be granted if the user is succesfully authenticated through the credentials passed in the request body. The token granted by this endpoint is only useful to request for Request tokens through renew
+	
+		Returns 
+		- `200 Ok` Along with the Session JWT if the user is succesfully authorized
+		- `401 Unauthorized` Along with an explanation, if the user failed authentication or if the user's credentials have been revoked
+		- `403 Forbidden` If the credentials are not recognized. 
+		- `400 Bad Request` if the body is malformed, along with a list of problems.
+	- `GET:*/api/v1/auth/renew`: When the user uses a Session Token on this endpoint, the server will return a request token which will allow the user to issue requests to other endpoints in the API for 30 seconds, until they request a new one. 
+	
+		Returns 
+		- `200 Ok` response along the Request JWT if the user is found and validated 
+		- `403 Forbidden` If the token is invalid
+		- `401 Unauthorized` If the user key's could not be found.
+	- `GET:*/api/v1/auth/status`: 
+	
+		Returns
+		- `200 Ok` Signifying that the token is still valid. 
+		- `401 Unauthorized` If the server receives a valid JWT that is not a Request Token response with a string explaining the issue.
 
-*Privacy Notice:* Users under the `root` role have unrestricted (read/write) access to this data, as long as they know the appname its registered under. Saved data cannot be enumerated through the API (Guaranteed true only in [The original repo](https://github.com/DiegoG1019/D_API/))
+* API/v1/User
+	
+	This controller is dedicated to handling user-related requests, like creating a new user
+
+	Defined in [AuthController.cs](/D_API/Controllers/UserController.cs), this controller has the following `endpoints`:
+	- `POST:*/api/v1/user/create`: Obtains `UserCreationData` from the body of the request. 
+	
+		Returns
+		- `403 Forbidden` with a reason message if the user already exists or if the request was, for some reason, denied. 
+		- `200 OK` if the request was accepted and the services were configured correctly.
+		
+		Request
+		- UserCreationData
+		```json
+		{
+			"Identifier": "*",
+			"Roles": "*,*",
+			"Data": null or [
+				{
+					"Service": 0, --AppDataHost
+					"Data": [
+						null or number Upload,
+						null or number Downoad,
+						null or number Storage
+					]
+				}
+			]
+		}
+		```
+		Data can be null, or have only the desired service configuration data. If Data contains multiple configuration settings for the same service, the entire request will be rejected.
+
+*Privacy Notice:* User storage is unencrypted by default and can potentially be accessed by administrative entities. It's highly recommended to encrypt sensitive data before uploading. Saved data cannot be enumerated through the API (Guaranteed true only in [The original repo](https://github.com/DiegoG1019/D_API/))
 
 ### Rate Limiting
 Just like basically any other API, there are rate limits for every user, to prevent abuse.
