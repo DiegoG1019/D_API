@@ -117,36 +117,18 @@ namespace D_API.Controllers
             return Ok(await Data.CheckExists(key, datakey));
         }
 
-        [HttpGet("transferquota")]
-        public async Task<IActionResult> GetTransferQuota()
+        [HttpGet("transferreport")]
+        public async Task<IActionResult> GetTransferReport()
         {
             if (!User.GetUserKey(out var key, out string? error))
                 return Forbidden(error);
-            return Ok(await Data.GetTransferQuota(key));
-        }
-
-        [HttpGet("transferusage")]
-        public async Task<IActionResult> GetTransferUsage()
-        {
-            if (!User.GetUserKey(out var key, out string? error))
-                return Forbidden(error);
-            return Ok(await Data.GetTransferUsage(key));
-        }
-
-        [HttpGet("storagequota")]
-        public async Task<IActionResult> GetStorageQuota()
-        {
-            if (!User.GetUserKey(out var key, out string? error))
-                return Forbidden(error);
-            return Ok(await Data.GetStorageQuota(key));
-        }
-
-        [HttpGet("storageusage")]
-        public async Task<IActionResult> GetStorageUsage()
-        {
-            if (!User.GetUserKey(out var key, out string? error))
-                return Forbidden(error);
-            return Ok(await Data.GetStorageUsage(key));
+            return Ok(new
+            {
+                TransferQuota = await Data.GetTransferQuota(key),
+                TransferUsage = await Data.GetTransferUsage(key),
+                StorageQuota = await Data.GetStorageQuota(key),
+                StorageUsage = await Data.GetStorageUsage(key)
+            });
         }
     }
 }
