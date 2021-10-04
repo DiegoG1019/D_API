@@ -12,7 +12,7 @@ namespace D_API.Types.Responses
 {
     public enum APIResponseCode : ushort
     {
-        UnspecifiedError = 0, TooManyRequests = 1, BadUserKey = 2,
+        UnspecifiedError = 0, TooManyRequests = 1, BadUserKey = 2, NotInSession = 3,
 
         Message = 100,
 
@@ -35,6 +35,7 @@ namespace D_API.Types.Responses
     public record UnspecifiedError(string Title, string? ErrorType = null, string? Message = null) : BaseResponse(APIResponseCode.UnspecifiedError, Title);
     public record TooManyRequests(double Limit, TimeSpan Period, string RetryAfter, string Title = "You have exceeded your request limit") : BaseResponse(APIResponseCode.TooManyRequests, Title);
     public record BadUserKey(Guid Key, string? Error) : BaseResponse(APIResponseCode.BadUserKey, "The user ID is invalid");
+    public record NotInSession() : BaseResponse(APIResponseCode.NotInSession, "This request does not have a valid Session or Request token");
 
     // ----
 
