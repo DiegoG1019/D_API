@@ -22,6 +22,7 @@ using Serilog;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Data;
 using D_API.Config.Middleware;
+using System.Threading.Tasks;
 
 namespace D_API
 {
@@ -122,6 +123,7 @@ namespace D_API
                 }
 
                 app.UseMiddleware<D_APIClientRateLimitMiddleware>();
+                app.Use(AuthorizationMiddleware.UnauthorizedFilter);
 
                 app.UseHttpsRedirection();
 
