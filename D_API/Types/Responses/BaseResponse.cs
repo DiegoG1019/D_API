@@ -35,7 +35,7 @@ namespace D_API.Types.Responses
     public record UnspecifiedError(string Title, string? ErrorType = null, string? Message = null) : BaseResponse(APIResponseCode.UnspecifiedError, Title);
     public record TooManyRequests(double Limit, TimeSpan Period, string RetryAfter, string Title = "You have exceeded your request limit") : BaseResponse(APIResponseCode.TooManyRequests, Title);
     public record BadUserKey(Guid Key, string? Error) : BaseResponse(APIResponseCode.BadUserKey, "The user ID is invalid");
-    public record NotInSession() : BaseResponse(APIResponseCode.NotInSession, "This request does not have a valid Session or Request token");
+    public record NotInSession(string? Title = null) : BaseResponse(APIResponseCode.NotInSession, Title ?? "This request does not have a valid Session or Request token");
 
     // ----
 
