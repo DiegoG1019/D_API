@@ -21,6 +21,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "D_API.Lib", "D_API.Lib", "{61D7645D-6C74-4919-9D8F-BB93A8F4A111}"
+	ProjectSection(SolutionItems) = preProject
+		D_API.Lib\README.md = D_API.Lib\README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -54,6 +59,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{098BD414-73FE-4E98-96B8-7081DEDACB5A} = {747155EF-D0E6-49FC-925D-7B5678A352A6}
 		{44419CFB-812C-4D81-8C12-0AB38D10587C} = {747155EF-D0E6-49FC-925D-7B5678A352A6}
+		{61D7645D-6C74-4919-9D8F-BB93A8F4A111} = {B44BF58D-A5D4-41D4-A6F9-712FAA8E10DA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {378BD7ED-33CB-48C1-A2FF-D611E54CA83D}
