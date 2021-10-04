@@ -78,6 +78,7 @@ The following is a list of all endpoints in this API, along with the type of res
 		- `403 Forbidden, DataQuotaExceeded` If the user has exceeded their daily download quota
 		- `404 Not Found, DataDownloadFailure` If the given data key does not belong to any piece of data the user has access to.
 		- `401 Unauthorized, DataDownloadFailure` If the user does not have access to the requested piece of data.
+		- `401 Unauthorized, NotInSession` If the user does not have a valid Session or Request Token
 		- `200 OK, DataDownloadSuccess` Along with the data
 	- `POST:*/api/v1/data/upload/{datakey}`: Uploads the desired data from the body by the given key, as long as the user has access to the resource.
 	
@@ -89,6 +90,7 @@ The following is a list of all endpoints in this API, along with the type of res
 		- `403 Forbidden, DataUploadFailure` If the data already exists, and overwrite is not set to true
 		- `403 Forbidden, DataQuotaExceeded` If the user has exceeded their daily upload quota
 		- `401 Unauthorized, DataUploadFailure` If the user does not have access to the requested piece of data.
+		- `401 Unauthorized, NotInSession` If the user does not have a valid Session or Request Token
 		- `200 OK, DataUploadSuccess` Along with the data
 		
 		Request
@@ -105,11 +107,13 @@ The following is a list of all endpoints in this API, along with the type of res
 		Returns
 		- `403 Forbidden, BadUserKey` If the user is invalid.
 		- `400 BadRequest, BadDataKey` If the request is invalid
+		- `401 Unauthorized, NotInSession` If the user does not have a valid Session or Request Token
 		- `200 OK, AccessCheck` With a `boolean` response representing if the user has access to the resource
 	- `GET:*/api/v1/data/transferreport`: Returns a report representing the current usage and quotas of the user
 	
 		Returns
 		- `403 Forbidden, BadUserKey` If the user is invalid.
+		- `401 Unauthorized, NotInSession` If the user does not have a valid Session or Request Token
 		- `200 OK, TransferQuotaStatus` With the report
 
 	*Privacy Notice:* User storage is unencrypted by default and can potentially be accessed by administrative entities. It's highly recommended to encrypt sensitive data before uploading. Saved data cannot be enumerated through the API (Guaranteed true only in [The original repo](https://github.com/DiegoG1019/D_API/))
@@ -132,6 +136,7 @@ The following is a list of all endpoints in this API, along with the type of res
 		Returns 
 		- `200 Ok, RenewSessionSuccess` response along the Request JWT if the user is found and validated 
 		- `403 Forbidden, BadUserKey` If the token is invalid
+		- `401 Unauthorized, NotInSession` If the user does not have a valid Session or Request Token
 		- `401 Unauthorized, RenewSessionFailure` If the user key's could not be found, was revoked, or is inactive
 	- `GET:*/api/v1/auth/status`: 
 	
@@ -151,6 +156,7 @@ The following is a list of all endpoints in this API, along with the type of res
 		Returns
 		- `403 Forbidden, NewUserFailure` with a reason message if the user already exists or if the request was, for some reason, denied. 
 		- `200 OK, NewUserSuccess` if the request was accepted and the services were configured correctly.
+		- `401 Unauthorized, NotInSession` If the user does not have a valid Session or Request Token
 		
 		Request
 		- UserCreationData
@@ -179,6 +185,7 @@ They are grouped by Controller as the first digit, and Endpoint by the second di
 - `UnspecifiedError = 0, string? ErrorType, string? Message`
 - `TooManyRequests = 1`
 - `BadUserKey = 2, Guid Key, string? Error`
+- `NotInSession = 3`
 - `Message = 100, string MessageType, string MessageData`
 - `NewSessionSuccess = 200, string Token`
 - `NewSessionFailure = 201, string Reason, string Details`
