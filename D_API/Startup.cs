@@ -23,6 +23,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Data;
 using D_API.Config.Middleware;
 using System.Threading.Tasks;
+using D_API.Types.Responses;
 
 namespace D_API
 {
@@ -77,6 +78,16 @@ namespace D_API
                         ClockSkew = TimeSpan.Zero,
                         IssuerSigningKey = jwtSigningKey,
                     };
+                    x.Events = new JwtBearerEvents
+                    {
+                        OnChallenge = async context =>
+                        {
+                            context.HandleResponse();
+
+                            context.Response.StatusCode = 401;
+                            await context.HttpContext.Response.WriteAsJsonAsync(new NotInSession());
+                        }
+                    };
                 });
 
                 services.AddSingleton<IJwtProvider>(new JwtAuth(jwtSigningKey, jwtAudience, jwtIssuer));
@@ -123,7 +134,6 @@ namespace D_API
                 }
 
                 app.UseMiddleware<D_APIClientRateLimitMiddleware>();
-                app.Use(AuthorizationMiddleware.UnauthorizedFilter);
 
                 app.UseHttpsRedirection();
 
