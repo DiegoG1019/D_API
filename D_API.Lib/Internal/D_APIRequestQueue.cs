@@ -44,9 +44,9 @@ namespace D_API.Lib.Internal
         {
             EndpointTimeouts = new Dictionary<Endpoint, EndpointTimeout>()
             {
-                { Endpoint.General, new EndpointTimeout(new SemaphoreSlim(5, 5), TimeSpan.FromSeconds(1.1)) },
+                { Endpoint.Data, new EndpointTimeout(new SemaphoreSlim(5, 5), TimeSpan.FromSeconds(1.1)) },
                 { Endpoint.Auth, new EndpointTimeout(new SemaphoreSlim(1, 1), TimeSpan.FromSeconds(1.1)) },
-                { Endpoint.Probe, new EndpointTimeout(new SemaphoreSlim(2, 2), TimeSpan.FromSeconds(1.1)) },
+                { Endpoint.User, new EndpointTimeout(new SemaphoreSlim(2, 2), TimeSpan.FromSeconds(1.1)) },
                 { Endpoint.Whitelist, new EndpointTimeout(null) }
             };
 
@@ -79,7 +79,7 @@ namespace D_API.Lib.Internal
 
                             break;
                         }
-                        catch (D_APITooManyRequestsException)
+                        catch (TooManyRequestsException)
                         {
                             await TooManyRequestsSemaphore.WaitAsync();
                             await Task.Delay(2_000);
@@ -115,11 +115,11 @@ namespace D_API.Lib.Internal
                         result = await request();
                         semaphore.Release();
                     }
-                    catch (D_APITooManyRequestsException)
+                    catch (TooManyRequestsException)
                     {
                         throw;
                     }
-                    catch (D_APIRequestJWTExpiredException)
+                    catch (NotInSessionException)
                     {
                         throw;
                     }
