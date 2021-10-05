@@ -44,5 +44,12 @@ namespace D_API.Controllers
         public virtual ResponseResult Error(string title = "Unknown Error", string errorType = "", string message = "") 
             => ResponseResult(HttpStatusCode.InternalServerError, new UnspecifiedError(title, errorType, message));
 
+        [NonAction]
+        public virtual ResponseResult Error(Exception exception, HttpStatusCode statusCode = HttpStatusCode.InternalServerError)
+            => ResponseResult(statusCode, 
+                              new UnspecifiedError(
+                                                   "An error ocurred while processing your request", 
+                                                   exception.GetType().Name, 
+                                                   "A Report has been sent to the server"));
     }
 }
