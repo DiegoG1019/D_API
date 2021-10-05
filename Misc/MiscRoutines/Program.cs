@@ -36,4 +36,24 @@ string hashkey = "&fCd>2Cpxz=@SK>^sQkt5zV0aE]8IKNsqazFOPb:m-RBq0VsBSN?Ebn&^aiO6w
 //var deserialx = DailyUsageTracker.Deserialize(serialx);
 #endregion
 
-;
+#region Test UserDataTracker
+
+//var tracker = new UserDataTracker()
+//{
+//    DailyTransferDownloadQuota = 13251,
+//    DailyTransferUploadQuota = 21231,
+//    StorageQuota = 24,
+//    StorageUsage = 1231
+//};
+
+//await tracker.LoadTrackers();
+
+//await tracker.AddTracker(new(12, 3 ));
+//await tracker.AddTracker(new(1 , 53));
+//await tracker.AddTracker(new(2 , 15));
+//await tracker.AddTracker(new(7 , 9 ));
+//await tracker.AddTracker(new(4 , 21));
+
+//await tracker.SaveTrackers();
+
+#endregion
