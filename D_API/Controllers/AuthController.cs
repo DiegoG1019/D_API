@@ -87,7 +87,7 @@ namespace D_API.Controllers
                 if (!VerifyIdentifier(creds.Identifier, out error))
                     errors.Add(error);
 
-                if (!VerifyGuid(creds.Key, "Key", out error, out Guid key))
+                if (!VerifyGuid(creds.UserKey, "Key", out error, out Guid key))
                     errors.Add(error);
 
                 if (!VerifySecret(creds.Secret, out error))
@@ -104,7 +104,7 @@ namespace D_API.Controllers
 
             if (res is CredentialVerificationResult.NotRecognized)
             {
-                Log.Information($"User {creds.Identifier} ({creds.Key}) tried to auth, but their credentials were not recognized");
+                Log.Information($"User {creds.Identifier} ({creds.UserKey}) tried to auth, but their credentials were not recognized");
                 return Forbidden(new NewSessionFailure(res, "The user's credentials were verified, but are not recognized"));
             }
 
