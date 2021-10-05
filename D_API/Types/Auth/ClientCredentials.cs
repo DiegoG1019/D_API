@@ -7,7 +7,7 @@ namespace D_API.Types.Auth
     /// </summary>
     public sealed class UserRequestCredentials
     {
-        public string? Key { get; init; }
+        public string? UserKey { get; init; }
         public string? Secret { get; init; }
         public string? Identifier { get; init; }
     }
