@@ -1,6 +1,7 @@
 ﻿using D_API.Types.DataKeeper;
 using DiegoG.Utilities;
 using DiegoG.Utilities.Collections;
+using DiegoG.Utilities.IO;
 using NeoSmart.AsyncLock;
 using System;
 using System.Collections.Generic;
@@ -26,27 +27,63 @@ namespace D_API.Models.DataKeeper
         public TransferReport GetTransferQuota()
             => new(DailyTransferUploadQuota, DailyTransferDownloadQuota);
 
-        public List<DailyUsageTracker> Trackers { get; set; } = new();
+        public byte[] TrackersList { get; set; } = Array.Empty<byte>();
+
+        [NotMapped]
+        public List<DailyUsageTracker> Trackers { get;  set; } = new();
+
+        [NotMapped]
+        public bool TrackersLoaded { get; private set; } = false;
 
         public async Task ClearOutdatedTransferTrackers()
         {
             DailyUsageTracker tr;
             using (await sync.LockAsync())
+            {
+                if (TrackersLoaded is false)
+                    await LoadTrackers();
+
                 for (int i = 0; i < Trackers.Count; i++)
                     if ((tr = Trackers[i]).Created + tr.Expiration < DateTime.Now)
                         Trackers.RemoveAt(i--);
+            }
         }
 
         public async Task AddTracker(DailyUsageTracker tracker)
         {
             using (await sync.LockAsync())
+            {
+                if (TrackersLoaded is false)
+                    await LoadTrackers();
                 Trackers.Add(tracker);
+            }
         }
+
+        public async Task LoadTrackers()
+        {
+            try
+            {
+                Trackers = new(await Serialization.Deserialize<DailyUsageTracker[]>.MsgPkAsync(TrackersList));
+            }
+            catch
+            {
+                Trackers = new List<DailyUsageTracker>();
+            }
+
+            TrackersLoaded = true;
+        }
+
+        public async Task SaveTrackers()
+            => TrackersList = await Serialization.Serialize.MsgPkAsync(Trackers.ToArray());
 
         public async Task<TransferReport> GetTotalTransferUsage()
         {
             using (await sync.LockAsync())
+            {
+                if (TrackersLoaded is false)
+                    await LoadTrackers();
                 return new(Trackers.Aggregate<DailyUsageTracker, (double up, double down)>((0, 0), (acc, val) => (acc.up + val.Upload, acc.down + val.Download)));
+            }
         }
 
         public async Task<(bool IsOverDownload, bool IsOverUpload, double OverDownloadQuota, double OverUploadQuota)> GetIfOverTransferQuota()
