@@ -36,6 +36,7 @@ namespace D_API
 
             var usertracker = new UserDataTracker()
             {
+                Key = user.Key,
                 DailyTransferDownloadQuota = Data.GetTotalBytes(50, Data.DataPrefix.Mega),
                 DailyTransferUploadQuota = Data.GetTotalBytes(50, Data.DataPrefix.Mega),
                 StorageQuota = Data.GetTotalBytes(20, Data.DataPrefix.Mega)
