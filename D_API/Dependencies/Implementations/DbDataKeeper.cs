@@ -4,6 +4,7 @@ using D_API.Models.DataKeeper;
 using D_API.Types.DataKeeper;
 using DiegoG.Utilities.IO;
 using DiegoG.Utilities.Measures;
+using Microsoft.EntityFrameworkCore;
 using NeoSmart.AsyncLock;
 using Serilog;
 using System;
@@ -32,13 +33,8 @@ namespace D_API.Dependencies.Implementations
 
         public async Task<DataOperationResults<double, bool>> Upload(Guid userkey, string datakey, byte[] data, bool overwrite)
         {
-            DataEntry? dataEntry;
-            UserDataTracker? usageTracker;
-            {
-                var t = Db.DataEntries.FindAsync(userkey, datakey);
-                usageTracker = await Db.UserDataTrackers.FindAsync(userkey);
-                dataEntry = await t;
-            }
+            DataEntry? dataEntry = await Db.DataEntries.FindAsync(userkey, datakey);
+            UserDataTracker? usageTracker = await Db.UserDataTrackers.FindAsync(userkey);
 
             try
             {
@@ -53,18 +49,26 @@ namespace D_API.Dependencies.Implementations
                     return new(DataOpResult.OverStorageQuota, overstorage, false);
 
                 bool ow = false;
+                double storage = data.Length;
 
                 if (dataEntry is null)
-                    dataEntry = new(userkey, datakey, data, Guid.NewGuid(), new());
-                else if (ow = dataEntry.IsImportant && !overwrite)
-                    return new(DataOpResult.NoOverwrite, 0, false);
+                {
+                    await Db.DataEntries.AddAsync(dataEntry = new(userkey, datakey, data, Guid.NewGuid(), new()));
+                    await Db.SaveChangesAsync();
+                }
+                else
+                {
+                    if (ow = dataEntry.IsImportant && !overwrite)
+                        return new(DataOpResult.NoOverwrite, 0, false);
+                    storage =- dataEntry.Size;
+                }
 
                 //If it does contain the key but the value is null, it should overwrite it
 
-                await usageTracker.AddTracker(new(0, data.Length));
-                usageTracker.StorageUsage += data.Length - dataEntry.Size;
+                await usageTracker.AddTracker(new DailyUsageTracker(0, data.Length));
+                await usageTracker.SaveTrackers();
+                usageTracker.StorageUsage += storage;
                 dataEntry.Data = data;
-
                 return new(DataOpResult.Success, 0, ow);
             }
             finally
@@ -90,7 +94,8 @@ namespace D_API.Dependencies.Implementations
                     return new(DataOpResult.DataDoesNotExist, null, 0);
 
                 await usageTracker.AddTracker(new(dataEntry.Size, 0));
-            
+                await usageTracker.SaveTrackers();
+
                 return new(DataOpResult.Success, dataEntry.Data, 0);
             }
             finally
@@ -146,12 +151,8 @@ namespace D_API.Dependencies.Implementations
 
         public async Task<DataOperationResults<byte[]?, double>> DownloadReadonly(Guid userkey, Guid dataKey)
         {
-            var usageTrackerTask = Task.Run(async () =>
-            {
-                var t = await Db.UserDataTrackers.FindAsync(userkey);
-                await t.ClearOutdatedTransferTrackers();
-                return t;
-            });
+            var usageTracker = await Db.UserDataTrackers.FindAsync(userkey);
+            await usageTracker.ClearOutdatedTransferTrackers();
 
             var dataEntry = Db.DataEntries.FirstOrDefault(x => x.ReadOnlyKey == dataKey);
 
@@ -160,7 +161,6 @@ namespace D_API.Dependencies.Implementations
             if (!dataEntry.Readers.Any(x => x.Key == userkey)) 
                 return new(DataOpResult.DataInaccessible, null, 0);
 
-            var usageTracker = await usageTrackerTask;
             try
             {
                 var (odq, _, od, _) = await usageTracker.GetIfOverTransferQuota();
@@ -168,6 +168,7 @@ namespace D_API.Dependencies.Implementations
                     return new(DataOpResult.OverTransferQuota, null, od);
 
                 await usageTracker.AddTracker(new(dataEntry.Size, 0));
+                await usageTracker.SaveTrackers();
                 return new(DataOpResult.Success, dataEntry.Data, 0);
             }
             finally
