@@ -45,11 +45,11 @@ namespace D_API.Controllers
             => ResponseResult(HttpStatusCode.InternalServerError, new UnspecifiedError(title, errorType, message));
 
         [NonAction]
-        public virtual ResponseResult Error(Exception exception, HttpStatusCode statusCode = HttpStatusCode.InternalServerError)
+        public virtual ResponseResult Error(Exception exception, HttpStatusCode statusCode = HttpStatusCode.InternalServerError, string? title = null, bool useExceptionMessage = false)
             => ResponseResult(statusCode, 
                               new UnspecifiedError(
-                                                   "An error ocurred while processing your request", 
-                                                   exception.GetType().Name, 
-                                                   "A Report has been sent to the server"));
+                                                   title ?? "An error ocurred while processing your request", 
+                                                   exception.GetType().Name,
+                                                   useExceptionMessage ? exception.Message : "A Report has been sent to the server"));
     }
 }
