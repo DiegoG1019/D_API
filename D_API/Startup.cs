@@ -132,6 +132,10 @@ namespace D_API
                     app.UseSwagger();
                     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "D_API v1"));
                 }
+                else
+                {
+                    app.UseExceptionHandler("/error");
+                }
 
                 app.UseMiddleware<D_APIClientRateLimitMiddleware>();
 

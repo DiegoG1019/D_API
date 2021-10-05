@@ -39,5 +39,10 @@ namespace D_API.Controllers
 
         [NonAction]
         public ObjectResult NotFound(BaseResponse response) => ResponseResult(HttpStatusCode.NotFound, response);
+
+        [Route("/error")]
+        public virtual ResponseResult Error(string title = "Unknown Error", string errorType = "", string message = "") 
+            => ResponseResult(HttpStatusCode.InternalServerError, new UnspecifiedError(title, errorType, message));
+
     }
 }
