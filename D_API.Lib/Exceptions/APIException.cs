@@ -16,7 +16,6 @@ namespace D_API.Lib.Exceptions
             => APIResponse.GetResponseCode(jsonString) switch
             {
                 APIResponseCode.BadDataKey => new BadDataKeyException(APIResponse.GetResponse<BadDataKeyResponse>(jsonString)),
-                APIResponseCode.UnspecifiedError => new UnspecifiedErrorException(APIResponse.GetResponse<UnspecifiedErrorResponse>(jsonString)),
                 APIResponseCode.TooManyRequests => new TooManyRequestsException(APIResponse.GetResponse<TooManyRequestsResponse>(jsonString)),
                 APIResponseCode.BadUserKey => new BadUserKeyException(APIResponse.GetResponse<BadUserKeyResponse>(jsonString)),
                 APIResponseCode.NewSessionFailure => new NewSessionFailureException(APIResponse.GetResponse<NewSessionFailureResponse>(jsonString)),
@@ -26,6 +25,8 @@ namespace D_API.Lib.Exceptions
                 APIResponseCode.DataDownloadFailure => new DataDownloadFailureException(APIResponse.GetResponse<DataDownloadFailureResponse>(jsonString)),
                 APIResponseCode.DataQuotaExceeded => new DataQuotaExceededException(APIResponse.GetResponse<DataQuotaExceededResponse>(jsonString)),
                 APIResponseCode.NewUserFailure => new NewUserFailureException(APIResponse.GetResponse<NewUserFailureResponse>(jsonString)),
+                APIResponseCode.NotInSession => new NotInSessionException(APIResponse.GetResponse<NotInSessionResponse>(jsonString)),
+                APIResponseCode.UnspecifiedError => new UnspecifiedErrorException(APIResponse.GetResponse<UnspecifiedErrorResponse>(jsonString)),
                 _ => throw new InvalidDataException("The given APIResponseCode is not supported as an Exception"),
             };
 
@@ -33,7 +34,6 @@ namespace D_API.Lib.Exceptions
             => response.APIResponseCode switch
             {
                 APIResponseCode.BadDataKey => new BadDataKeyException((BadDataKeyResponse)response),
-                APIResponseCode.UnspecifiedError => new UnspecifiedErrorException((UnspecifiedErrorResponse)response),
                 APIResponseCode.TooManyRequests => new TooManyRequestsException((TooManyRequestsResponse)response),
                 APIResponseCode.BadUserKey => new BadUserKeyException((BadUserKeyResponse)response),
                 APIResponseCode.NewSessionFailure => new NewSessionFailureException((NewSessionFailureResponse)response),
@@ -43,8 +43,16 @@ namespace D_API.Lib.Exceptions
                 APIResponseCode.DataDownloadFailure => new DataDownloadFailureException((DataDownloadFailureResponse)response),
                 APIResponseCode.DataQuotaExceeded => new DataQuotaExceededException((DataQuotaExceededResponse)response),
                 APIResponseCode.NewUserFailure => new NewUserFailureException((NewUserFailureResponse)response),
+                APIResponseCode.NotInSession => new NotInSessionException((NotInSessionResponse)response),
+                APIResponseCode.UnspecifiedError => new UnspecifiedErrorException((UnspecifiedErrorResponse)response),
                 _ => throw new InvalidDataException("The given APIResponseCode is not supported as an Exception"),
             };
+    }
+
+    [Serializable]
+    public class NotInSessionException : APIException
+    {
+        public NotInSessionException(NotInSessionResponse response) : base(response) { }
     }
 
     [Serializable]
