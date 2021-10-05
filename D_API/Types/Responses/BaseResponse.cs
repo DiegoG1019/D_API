@@ -12,7 +12,7 @@ namespace D_API.Types.Responses
 {
     public enum APIResponseCode : ushort
     {
-        UnspecifiedError = 0, TooManyRequests = 1, BadUserKey = 2, NotInSession = 3,
+        TooManyRequests = 1, BadUserKey = 2, NotInSession = 3, UnspecifiedError = 4,
 
         Message = 100,
 
