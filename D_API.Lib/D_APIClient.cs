@@ -1,4 +1,5 @@
-﻿using D_API.Lib.Exceptions;
+﻿using D_API.Lib.Components;
+using D_API.Lib.Exceptions;
 using D_API.Lib.Internal;
 using D_API.Lib.Models;
 using D_API.Lib.Models.Responses;
@@ -18,21 +19,57 @@ namespace D_API.Lib
     {
         #region fields
 
-        protected readonly AsyncLock Lock = new AsyncLock();
+        internal readonly AsyncLock Lock = new AsyncLock();
 
-        protected readonly HttpClient Http;
-        protected readonly IRequestQueue RequestQueue;
-        protected readonly Credentials Credentials;
+        internal readonly HttpClient Http;
+        internal readonly IRequestQueue RequestQueue;
+        internal readonly Credentials Credentials;
+
+        #endregion
+
+        #region Endpoint Handlers
+
+        public Auth Auth { get; private set; }
+        public UserData UserData { get; private set; }
+        public UserManagement UserManagement { get; private set; }
 
         #endregion
 
         #region constructors
 
+        public D_APIClient(Credentials creds, string address, bool useRequestQueue) 
+            : this(creds, new Uri(address), useRequestQueue ? (IRequestQueue)new D_APIRequestQueue() : new D_APINoRequestQueue()) { }
         public D_APIClient(Credentials creds, Uri address, IRequestQueue requestQueue)
         {
             Http = new HttpClient() { BaseAddress = address };
             RequestQueue = requestQueue;
             Credentials = creds;
+
+            Auth = new Auth(this);
+            UserData = new UserData(this);
+            UserManagement = new UserManagement(this);
+        }
+
+        #endregion
+
+        #region public
+
+        public async Task<APIResponseMessage> GetFromAPIAsync(string uri)
+        {
+            await RenewRequestToken();
+            return await Http.GetFromAPIAsync(uri);
+        }
+
+        public async Task<APIResponseMessage> PostToAPIAsync(string uri, object data)
+        {
+            await RenewRequestToken();
+            return await Http.PostToAPIAsync(uri, data);
+        }
+
+        public async Task<APIResponseMessage> PostToAPIAsync<T>(string uri, T data)
+        {
+            await RenewRequestToken();
+            return await Http.PostToAPIAsync(uri, data);
         }
 
         #endregion
@@ -74,13 +111,17 @@ namespace D_API.Lib
 
         private async Task<string> GetSessionToken()
         {
-            var r = await CheckResponse(await Http.PostAsJsonAsync("api/v1/auth/newsession", Credentials));
+            var r = await Http.PostToAPIAsync("api/v1/auth/newsession", Credentials);
             return r.StatusCode is HttpStatusCode.OK
-                ? await r.Content.ReadAsStringAsync()
-                : throw APIException.GetException(await r.Content.ReadAsStringAsync());
+                ? r.APIResponse.As<NewSessionSuccessResponse>().Token
+                : throw APIException.GetException(r);
         }
 
-        private async Task RenewRequestToken()
+        #endregion
+
+        #region internal
+
+        internal async Task RenewRequestToken()
         {
             if ((await Http.GetAsync("api/v1/auth/status")).StatusCode is HttpStatusCode.OK)
                 return;
@@ -89,43 +130,28 @@ namespace D_API.Lib
 
             while (true)
             {
-                var resp = await CheckResponse(await Http.GetAsync("api/v1/auth/renew"));
+                var resp = await Http.GetFromAPIAsync("api/v1/auth/renew");
 #if DEBUG
-                var response = await resp.Content.ReadAsStringAsync();
 #endif
-                if (resp.StatusCode is HttpStatusCode.OK)
+                if (resp.StatusCode is HttpStatusCode.OK && resp.APIResponse is RenewSessionSuccessResponse successResponse)
                 {
-                    await SetRequestJWT(await resp.Content.ReadAsStringAsync());
+                    await SetRequestJWT(successResponse.Token);
                     await UseRequestJWT();
                     break;
                 }
                 else
                 {
-                    string reason = await resp.Content.ReadAsStringAsync();
-                    await SetSessionJWT(await GetSessionToken());
+                    if(resp.APIResponseCode is APIResponseCode.NotInSession)
+                    {
+                        await SetSessionJWT(await GetSessionToken());
+                        continue;
+                    }
+                    throw APIException.GetException(resp);
                 } 
             }
 
             await UseRequestJWT();
         }
-
-        #endregion
-
-        #endregion
-
-        #region static methods
-
-        #region protected
-
-        protected static async Task<HttpResponseMessage> CheckResponse(HttpResponseMessage response)
-        {
-            var code = response.StatusCode;
-            if (code is HttpStatusCode.TooManyRequests)
-                throw new D_APITooManyRequestsException($"{response.ReasonPhrase} | {await response.Content.ReadAsStringAsync()}");
-            return response;
-        }
-
-        #endregion
 
         #endregion
     }
