@@ -10,6 +10,13 @@ namespace D_API.Lib.Models
         public string Identifier { get; set; }
         public string Secret { get; set; }
 
+        public Credentials()
+        {
+            UserKey = "";
+            Identifier = "";
+            Secret = "";
+        }
+
         public Credentials(string userKey, string identifier, string secret)
         {
             UserKey = userKey;
