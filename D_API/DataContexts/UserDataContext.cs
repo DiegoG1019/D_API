@@ -60,4 +60,15 @@ namespace D_API.DataContexts
         }
     }
 
+    public class UserDataContextFactory : IDesignTimeDbContextFactory<UserDataContext>
+    {
+        public UserDataContext CreateDbContext(string[] args)
+        {
+            Program.InitSettings();
+            var optionsBuilder = new DbContextOptionsBuilder<UserDataContext>();
+            optionsBuilder.UseSqlServer(Settings<APISettings>.Current.UserDataDbConnectionSettings.ConnectionString);
+
+            return new UserDataContext(optionsBuilder.Options);
+        }
+    }
 }
