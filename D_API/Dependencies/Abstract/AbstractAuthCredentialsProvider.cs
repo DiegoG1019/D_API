@@ -38,11 +38,12 @@ namespace D_API.Dependencies.Abstract
             if (status is User.Status.Revoked)
                 return new(CredentialVerificationResult.Revoked, user);
 
+            var credsSecret = await Helper.GetHashAsync(credentials.Secret, HashKey);
             if (status is User.Status.Active)
             {
                 if (credentials.Identifier != user.Identifier)
                     return new(CredentialVerificationResult.Refused, user, "Credentials Mismatch");
-                if (await Helper.GetHashAsync(credentials.Secret, HashKey) != user.Secret)
+                if (credsSecret != user.Secret)
                     return new(CredentialVerificationResult.Refused, user, "Credentials Mismatch");
                 return new(CredentialVerificationResult.Authorized, user);
             }
