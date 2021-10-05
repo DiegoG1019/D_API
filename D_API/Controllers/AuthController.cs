@@ -130,7 +130,7 @@ namespace D_API.Controllers
                 new(DateTime.Now, new InvalidOperationException("Unable to process credentials"), this, new KeyValuePair<string, object>[]
                 {
                     new ("CredentialVerificationResult", r.Result.ToString()),
-                    new ("User", r.User ?? (object)"null"),
+                    new ("User", r?.User ?? (object)"null"),
                     new ("SubmittedCredentials", creds)
                 }), "Authentication");
         }
