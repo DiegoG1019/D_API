@@ -1,6 +1,7 @@
 ﻿using DiegoG.Utilities.IO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -76,6 +77,7 @@ namespace D_API.Exceptions
         /// <returns></returns>
         public static async Task<Exception> WriteReport(ReportData report, string category, string? subcategory = null, [CallerMemberName]string? caller = null)
         {
+            Log.Error($"An error ocurred in {caller}; {category}{(subcategory is not null ? $", {subcategory}" : "")}");
             await WriteToFile(report, category, subcategory, caller);
             return report.Exception.Exception;
         }

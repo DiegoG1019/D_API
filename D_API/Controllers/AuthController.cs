@@ -65,13 +65,13 @@ namespace D_API.Controllers
                 Models.Auth.User.Status.Revoked => Unauthorized(new RenewSessionFailure("This user has had their credentials revoked")),
                 Models.Auth.User.Status.Inactive => Unauthorized(new RenewSessionFailure("This user is currently inactive")),
                 Models.Auth.User.Status.Active => Ok(new RenewSessionSuccess(await Task.Run(() => (Jwt.GenerateToken(user.Identifier, key, TimeSpan.FromSeconds(30), user.Roles + AppendRequester)!)))),
-                _ => throw await Report.WriteControllerReport(
+                _ => Error(await Report.WriteControllerReport(
                     new(DateTime.Now, new InvalidOperationException("The state of the user cannot be verified"),
                 this, 
                 new KeyValuePair<string, object>[]
                 {
                     new ("User", user)
-                }), "Authentication")
+                }), "Authentication"), useExceptionMessage: true)
             };
         }
 
@@ -126,13 +126,13 @@ namespace D_API.Controllers
                 return Ok(new NewSessionSuccess(Jwt.GenerateToken(r.User!.Identifier, r.User.Key, TimeSpan.FromHours(1), InSession)!));
             }
 
-            throw await Report.WriteControllerReport(
+            return Error(await Report.WriteControllerReport(
                 new(DateTime.Now, new InvalidOperationException("Unable to process credentials"), this, new KeyValuePair<string, object>[]
                 {
                     new ("CredentialVerificationResult", r.Result.ToString()),
                     new ("User", r?.User ?? (object)"null"),
                     new ("SubmittedCredentials", creds)
-                }), "Authentication");
+                }), "Authentication"), useExceptionMessage: true);
         }
 
         [AllowAnonymous]

@@ -60,7 +60,7 @@ namespace D_API.Controllers
                 DataOpResult.DataInaccessible => Unauthorized(new DataDownloadFailure(datakey, "This user does not have access this data")),
                 DataOpResult.OverTransferQuota => Forbidden(new DataQuotaExceeded(op.SecondValue, "download")),
                 DataOpResult.Success => Ok(new DataDownloadSuccess(datakey, op.FirstValue)),
-                _ => throw await Report.WriteControllerReport(new(
+                _ => Error(await Report.WriteControllerReport(new(
                     DateTime.Now,
                     new InvalidOperationException($"Expected only DataDoesNotExist, DataInaccessible, OverTransferQuota or Success, received: {op.Result}"),
                     this,
@@ -71,7 +71,7 @@ namespace D_API.Controllers
                             new("OperationResults", op)
                         }
                     )
-                    , "AppDataHost")
+                    , "AppDataHost"))
             };
         }
 
@@ -91,7 +91,7 @@ namespace D_API.Controllers
                 DataOpResult.NoOverwrite => Forbidden(new DataUploadFailure(datakey, "This data already exists, and overwrite parameter is not set to true")),
                 DataOpResult.OverTransferQuota => Forbidden(new DataQuotaExceeded(op.FirstValue, "upload")),
                 DataOpResult.Success => Ok(new DataUploadSuccess(datakey, op.SecondValue)),
-                _ => throw await Report.WriteControllerReport(new(
+                _ => Error(await Report.WriteControllerReport(new(
                     DateTime.Now,
                     new InvalidOperationException($"Expected only OverStorageQuota, NoOverwrite, OverTransferQuota or Success, received: {op.Result}"),
                     this,
@@ -103,7 +103,7 @@ namespace D_API.Controllers
                             new("OperationResults", op)
                         }
                     )
-                    , "AppDataHost")
+                    , "AppDataHost"))
             };
         }
 

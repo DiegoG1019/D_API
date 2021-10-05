@@ -59,10 +59,13 @@ namespace D_API.Controllers
                     if(r.ServiceData is not null)
                     {
                         HashSet<Service> Data = new();
-                        foreach(var serdat in r.ServiceData)
+                        foreach (var serdat in r.ServiceData)
                         {
+                            string? name = Enum.GetName(serdat.Service);
+                            string formatted = $"({(int)serdat.Service}{(name is not null ? $", {name}" : "")})";
+
                             if (Data.Contains(serdat.Service))
-                                throw new InvalidOperationException("Cannot configure the same user service more than once");
+                                return BadRequest(new NewUserFailure($"Cannot configure the same service {formatted} more than once", r));
                             Data.Add(serdat.Service);
                             if (serdat is { Service: Service.Data })
                             {
@@ -74,20 +77,21 @@ namespace D_API.Controllers
                                 }
                                 r.ServiceConfigurationResults.Add($"DataKeeper Quota Settings were invalid, did not configure");
                             }
-                            throw new InvalidOperationException("The given Service configuration Data does not represent any supported Service available for this user");
+                            return BadRequest(
+                                new NewUserFailure($"The given Service {formatted} configuration Data does not represent any supported Service available for this user", r));
                         }
                     }
                     return Ok(new NewUserSuccess(r));
                 }
 
-                throw await Report.WriteControllerReport(
+                return Error(await Report.WriteControllerReport(
                             new(DateTime.Now, new InvalidOperationException("User Creation could not be completed"),
                                 this,
                                 new KeyValuePair<string, object?>[]
                                 {
                                 new ("UserCreationData", newUser),
                                 new ("UserCreationResults", r),
-                                }), "Authentication");
+                                }), "Authentication"), useExceptionMessage: true);
             }
             catch (Exception e)
             {
