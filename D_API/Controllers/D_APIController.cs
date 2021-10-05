@@ -26,19 +26,19 @@ namespace D_API.Controllers
             };
 
         [NonAction]
-        public ObjectResult Forbidden(BaseResponse response) => ResponseResult(HttpStatusCode.Forbidden, response);
+        public ResponseResult Forbidden(BaseResponse response) => ResponseResult(HttpStatusCode.Forbidden, response);
 
         [NonAction]
-        public ObjectResult BadRequest(BaseResponse response) => ResponseResult(HttpStatusCode.BadRequest, response);
+        public ResponseResult BadRequest(BaseResponse response) => ResponseResult(HttpStatusCode.BadRequest, response);
 
         [NonAction]
-        public ObjectResult Ok(BaseResponse response) => ResponseResult(HttpStatusCode.OK, response);
+        public ResponseResult Ok(BaseResponse response) => ResponseResult(HttpStatusCode.OK, response);
 
         [NonAction]
-        public ObjectResult Unauthorized(BaseResponse response) => ResponseResult(HttpStatusCode.Unauthorized, response);
+        public ResponseResult Unauthorized(BaseResponse response) => ResponseResult(HttpStatusCode.Unauthorized, response);
 
         [NonAction]
-        public ObjectResult NotFound(BaseResponse response) => ResponseResult(HttpStatusCode.NotFound, response);
+        public ResponseResult NotFound(BaseResponse response) => ResponseResult(HttpStatusCode.NotFound, response);
 
         [Route("/error")]
         public virtual ResponseResult Error(string title = "Unknown Error", string errorType = "", string message = "") 
