@@ -36,22 +36,7 @@ namespace D_API
         {
             startwatch.Start();
 
-            Settings<APISettings>.Initialize(Directories.Configuration, "apisettings.cfg");
-
-            {
-                List<string> errors = new();
-                if (Settings<APISettings>.Current.TelegramAPIKey is null)
-                    errors.Add($"Cannot start without a valid Telegram Bot API Key. Please configure one in {Path.GetFullPath(Directories.Configuration)}");
-
-                if (!Settings<APISettings>.Current.AllowedUsers.Any())
-                    errors.Add($"Cannot start without at least one allowed user. Please configure one in {Path.GetFullPath(Directories.Configuration)}");
-
-                if (Settings<APISettings>.Current.EventChannelId is 0)
-                    errors.Add($"Cannot start without a valid Event Telegram Channel Id. Please configure one in {Path.GetFullPath(Directories.Configuration)}");
-
-                if (errors.Any())
-                    throw new InvalidOperationException($"Found one or more errors when initializing the API:\n*> {string.Join("\n*> ", errors)}");
-            }
+            InitSettings();
 
             TelegramBot = new(Settings<APISettings>.Current.TelegramAPIKey!, 10,
                 config: new(true, true, false, true, true),
@@ -89,6 +74,23 @@ namespace D_API
                 Log.Information($"{x.Name} directory @ {x.GetValue(null)}");
 
             CreateHostBuilder(args).Build().Run();
+        }
+
+        public static void InitSettings()
+        {
+            Settings<APISettings>.Initialize(Directories.Configuration, "apisettings.cfg");
+            List<string> errors = new();
+            if (Settings<APISettings>.Current.TelegramAPIKey is null)
+                errors.Add($"Cannot start without a valid Telegram Bot API Key. Please configure one in {Path.GetFullPath(Directories.Configuration)}");
+
+            if (!Settings<APISettings>.Current.AllowedUsers.Any())
+                errors.Add($"Cannot start without at least one allowed user. Please configure one in {Path.GetFullPath(Directories.Configuration)}");
+
+            if (Settings<APISettings>.Current.EventChannelId is 0)
+                errors.Add($"Cannot start without a valid Event Telegram Channel Id. Please configure one in {Path.GetFullPath(Directories.Configuration)}");
+
+            if (errors.Any())
+                throw new InvalidOperationException($"Found one or more errors when initializing the API:\n*> {string.Join("\n*> ", errors)}");
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
