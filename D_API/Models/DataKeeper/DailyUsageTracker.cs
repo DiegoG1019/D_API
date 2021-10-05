@@ -1,30 +1,27 @@
 ﻿using DiegoG.Utilities.IO;
+using MessagePack;
 using System;
-using System.ComponentModel.DataAnnotations;
 
 namespace D_API.Models.DataKeeper
 {
+    [MessagePackObject]
     public class DailyUsageTracker
     {
-        [Key]
-        public Guid Index { get; set; }
+        [Key(0)] public DateTime Created { get; set; }
+        [Key(1)] public TimeSpan Expiration { get; set; }
+        [Key(2)] public double Upload { get; set; }
+        [Key(3)] public double Download { get; set; }
 
-        public DateTime Created { get; set; }
-        public TimeSpan Expiration { get; set; }
-        public double Upload { get; set; }
-        public double Download { get; set; }
+        public DailyUsageTracker() { }
 
-        public DailyUsageTracker(Guid index, double upload, double download, DateTime created, TimeSpan expiration)
+        public DailyUsageTracker(double upload, double download, DateTime created, TimeSpan expiration)
         {
-            Index = index;
             Created = created;
             Expiration = expiration;
             Upload = upload;
             Download = download;
         }
 
-        public DailyUsageTracker(double upload, double download, DateTime created, TimeSpan expiration) : this(Guid.NewGuid(), upload, download, created, expiration) { }
-
-        public DailyUsageTracker(double upload, double download) : this(upload, download, DateTime.Now, TimeSpan.FromDays(1)) { }
+        public DailyUsageTracker(double upload, double download) : this(upload, download, DateTime.Now, TimeSpan.FromDays(0.999)) { }
     }
 }
