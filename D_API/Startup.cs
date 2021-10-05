@@ -102,7 +102,7 @@ namespace D_API
                         SettingsTypes.DbEndpoint.CosmosDB => throw new NotImplementedException("CosmosDB is not yet implemented"),
                         SettingsTypes.DbEndpoint.NoDB => throw new InvalidOperationException("NoDB is not valid at this point in the code. It should have been skipped."),
                         _ => throw new NotSupportedException($"Database Type {dbsettings.Endpoint} is not supported")
-                    });
+                    }, ServiceLifetime.Transient);
 
                 var (hashkey, enkey, eniv) = GetMCVPData();
 
