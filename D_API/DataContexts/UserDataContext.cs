@@ -56,8 +56,8 @@ namespace D_API.DataContexts
             });
 
             modelBuilder.Entity<DataEntry>().HasKey(d => new { d.Owner, d.Identifier });
-            modelBuilder.Entity<DailyUsageTracker>().HasKey(d => d.Index);
             modelBuilder.Entity<DataEntry>().HasData(new DataEntry(user.Key, "default", Array.Empty<byte>(), Guid.NewGuid(), new List<UserHandle>()));
         }
     }
+
 }
