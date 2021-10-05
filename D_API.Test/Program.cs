@@ -18,89 +18,42 @@ namespace D_API.Test
         {
             Settings<TestSettings>.Initialize(".config", "settings");
             Client = new(Settings<TestSettings>.Current.ClientCredentials ?? throw new NullReferenceException("Client Credentials cannot be null"),
-                Settings<TestSettings>.Current.BaseAddress ?? "https://localhost:44379/");
+                Settings<TestSettings>.Current.BaseAddress ?? "https://localhost:44379/", true);
 
             Log.Logger = new LoggerConfiguration().MinimumLevel.Verbose().WriteTo.Console().CreateLogger();
             WriteLine("Press enter to start the tests");
             ReadLine();
-            await TestAppData();
-            //await TestQueue();
-            await TestProbe();
+            await TestUserData();
             WriteLine("Finished tests, press any key to continue...");
             ReadKey();
         }
 
-        public static async Task TestQueue()
+        public static async Task TestUserData()
         {
-            StoreResult("Entering TestQueue");
-            Task[] tasks = new Task[30];
-            for (int i = 0; i < 30; i++)
-                tasks[i] = Client.Probe();
-            await Task.Delay(2000);
-            await Task.WhenAll(tasks);
-            StoreResult("TestQueue succesful");
-            PrintResults();
-        }
-
-        public static async Task TestAppData()
-        {
-            StoreResult("Entering TestAppData");
-            await Task.Run(async () =>
+        Start:;
+            WriteLine("Press enter to start TestUserData");
+            ReadLine();
+            try
             {
-                try
-                {
-                    StoreResult($"Get Test 1: {await Client.GetAppData<string>("Test")}");
-                }
-                catch (D_APIException exc)
-                {
-                    StoreResult($"Get Test 1 failed: {exc.Message}");
-                }
+                WriteLine("Entering TestUserData");
 
-                try
-                {
-                    await Client.PostAppData("Test", "papppasd", true);
-                    StoreResult($"Post Test 1 (ow:true): PASSED");
-                }
-                catch (D_APIException exc)
-                {
-                    StoreResult($"Post Test 1 failed: {exc.Message}");
-                }
+                WriteLine($"First Check: {await Client.UserData.CheckAccess("asd")}");
 
-                try
-                {
-                    StoreResult($"Get Test 2: {await Client.GetAppData<string>("Test")}");
-                }
-                catch (D_APIException exc)
-                {
-                    StoreResult($"Get Test 2 failed: {exc.Message}");
-                }
+                WriteLine($"Upload: {await Client.UserData.Upload("asd", new byte[] { 0, 1, 2, 3, 4, 5 }, true)}");
 
-                try
-                {
-                    await Client.PostAppData("Test", "papppasdadv", false);
-                    StoreResult($"Post Test 2 (ow:true): FAILED");
-                }
-                catch (Exception exc)
-                {
-                    StoreResult($"Get Test 2: {exc.Message}");
-                }
+                WriteLine($"Second Check: {await Client.UserData.CheckAccess("asd")}");
 
-                PrintResults();
-            });//.AwaitWithTimeout(10000, null, () => throw new Exception($"Probing took too long to complete"));
-        }
+                WriteLine($"Download: {string.Join(',', await Client.UserData.Download("asd"))}");
 
-        public static async Task TestProbe()
-        {
-            StoreResult("Entering TestProbe");
-            await Task.Run(async () =>
+                WriteLine($"Transfer Report: {await Client.UserData.GetTransferReport()}");
+
+                WriteLine("TestUserData succesful");
+            }
+            catch(Exception e)
             {
-                StoreResult($"Probe: {await Client.Probe()}");
-                StoreResult($"ProbeAuth: {await Client.ProbeAuth()}");
-                StoreResult($"ProbeAuthMod: {await Client.ProbeAuthMod()}");
-                StoreResult($"ProbeAuthAdmin: {await Client.ProbeAuthAdmin()}");
-                StoreResult($"ProbeAuthRoot: {await Client.ProbeAuthRoot()}");
-                PrintResults();
-            });//.AwaitWithTimeout(5000, null, () => throw new Exception($"Probing took too long to complete"));
+                WriteLine($"Failed Test with {e}");
+                goto Start;
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using D_API.Lib.Types;
+﻿using D_API.Lib.Internal;
+using D_API.Lib.Models;
 using DiegoG.Utilities.Settings;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace D_API.Test
     class TestSettings : ISettings
     {
         public string SettingsType => "TestSettings";
-        public ulong Version => 0;
+        public ulong Version => 1;
         public event PropertyChangedEventHandler PropertyChanged;
 
         public Credentials? ClientCredentials { get; set; }
