@@ -8,7 +8,8 @@ namespace D_API.Lib.Internal
     {
         Data,
         Auth,
-        User
+        User,
+        Whitelist
     }
 
     public enum Service
